@@ -1,0 +1,153 @@
+.research-benefits {
+  padding: 8rem 2rem;
+  position: relative;
+  background: var(--bg-secondary);
+  z-index: 1;
+}
+
+.research-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.research-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.research-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.research-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+.benefit-card {
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  padding: 2.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.benefit-card:hover {
+  border-color: var(--green-primary);
+}
+
+.benefit-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--green-primary);
+  letter-spacing: 0.05em;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.benefit-stat {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--green-primary);
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.benefit-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.benefit-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.benefit-source {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+.research-summary {
+  margin-top: 4rem;
+}
+
+.summary-box {
+  background: var(--white);
+  border: 2px solid var(--green-primary);
+  padding: 3rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.summary-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.summary-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .research-benefits {
+    padding: 6rem 1.5rem;
+  }
+
+  .research-title {
+    font-size: 2.5rem;
+  }
+
+  .research-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .benefits-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .benefit-card {
+    padding: 2rem;
+  }
+
+  .summary-box {
+    padding: 2rem;
+  }
+
+  .summary-title {
+    font-size: 1.5rem;
+  }
+
+  .summary-text {
+    font-size: 1rem;
+  }
+}
+

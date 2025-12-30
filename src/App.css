@@ -1,0 +1,53 @@
+.App {
+  min-height: 100vh;
+  position: relative;
+  background: var(--bg-primary);
+}
+
+/* Smooth fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease-out;
+}
+
+/* Gradient text effect - using green shades only */
+.gradient-text {
+  color: var(--green-primary);
+  font-weight: 800;
+}
+
+/* Section label - code comment style */
+.section-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--green-primary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 1rem;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+

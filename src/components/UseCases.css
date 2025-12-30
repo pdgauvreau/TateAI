@@ -1,0 +1,121 @@
+.use-cases {
+  padding: 8rem 2rem;
+  position: relative;
+  background: transparent;
+  z-index: 1;
+}
+
+.use-cases-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.use-cases-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.use-cases-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.use-cases-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.use-cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+.use-case-card {
+  background: var(--white);
+  border: 2px solid var(--border-color);
+  padding: 2.5rem;
+  transition: all 0.3s ease;
+}
+
+.use-case-card:hover {
+  border-color: var(--green-primary);
+}
+
+.use-case-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--green-primary);
+  letter-spacing: 0.05em;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.use-case-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.use-case-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.use-case-examples {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.use-case-examples li {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  padding: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.use-case-examples li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--green-primary);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .use-cases {
+    padding: 6rem 1.5rem;
+  }
+
+  .use-cases-title {
+    font-size: 2.5rem;
+  }
+
+  .use-cases-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .use-cases-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .use-case-card {
+    padding: 2rem;
+  }
+}
+
