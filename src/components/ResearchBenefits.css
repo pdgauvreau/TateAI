@@ -40,14 +40,16 @@
 
 .benefit-card {
   background: var(--white);
-  border: 2px solid var(--border-color);
+  border: 3px solid var(--border-color);
   padding: 2.5rem;
   transition: all 0.3s ease;
   position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .benefit-card:hover {
   border-color: var(--green-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .benefit-label {
@@ -97,10 +99,11 @@
 
 .summary-box {
   background: var(--white);
-  border: 2px solid var(--green-primary);
+  border: 3px solid var(--green-primary);
   padding: 3rem;
   max-width: 900px;
   margin: 0 auto;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.1);
 }
 
 .summary-title {

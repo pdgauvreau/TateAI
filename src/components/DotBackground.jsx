@@ -62,7 +62,7 @@ const DotBackground = () => {
       const greenIntensity = Math.min(1, intensity * 0.9)
       return `rgba(16, 185, 129, ${greenIntensity})`
     }
-    return 'rgba(229, 231, 235, 0.3)' // light gray
+    return 'rgba(209, 213, 219, 0.6)' // darker gray for more contrast
   }
 
   return (

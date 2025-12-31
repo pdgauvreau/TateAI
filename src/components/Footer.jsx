@@ -26,32 +26,15 @@ const Footer = () => {
           <div className="footer-links">
             <div className="footer-column">
               <h4>Product</h4>
-              <a href="#features">Features</a>
-              <a href="#pricing">Pricing</a>
-              <a href="#docs">Documentation</a>
-            </div>
-            <div className="footer-column">
-              <h4>Company</h4>
-              <a href="#about">About</a>
-              <a href="#blog">Blog</a>
-              <a href="#careers">Careers</a>
-            </div>
-            <div className="footer-column">
-              <h4>Support</h4>
-              <a href="#help">Help Center</a>
-              <a href="#contact">Contact</a>
-              <a href="#privacy">Privacy</a>
+              <a href="/#features">Features</a>
+              <a href="/pricing">Pricing</a>
+              <a href="/#how-it-works">How It Works</a>
             </div>
           </div>
         </motion.div>
 
         <div className="footer-bottom">
           <p>&copy; 2024 TATE AI. All rights reserved.</p>
-          <div className="footer-social">
-            <a href="#" aria-label="Twitter">Twitter</a>
-            <a href="#" aria-label="LinkedIn">LinkedIn</a>
-            <a href="#" aria-label="GitHub">GitHub</a>
-          </div>
         </div>
       </div>
     </footer>

@@ -50,10 +50,11 @@
 
 .feature-card {
   background: var(--white);
-  border: 2px solid var(--border-color);
+  border: 3px solid var(--border-color);
   padding: 2.5rem;
   transition: all 0.3s ease;
   position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .feature-card::before {
@@ -74,6 +75,7 @@
 
 .feature-card:hover {
   border-color: var(--green-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .feature-icon {
