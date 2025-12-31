@@ -8,7 +8,7 @@ import './App.css'
 
 function App() {
   return (
-    <Router>
+    <Router basename="/TateAI">
       <div className="App">
         <Navbar />
         <Routes>
