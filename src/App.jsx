@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
+import Conversation from './pages/Conversation'
 import Legal from './pages/Legal'
 import NotFound from './pages/NotFound'
 import Pricing from './components/Pricing'
@@ -29,6 +30,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat/:id"
+              element={
+                <ProtectedRoute>
+                  <Conversation />
                 </ProtectedRoute>
               }
             />

@@ -15,7 +15,7 @@ yet built — see [Roadmap](#roadmap).
 | Email/password auth, protected routes | Done |
 | Database schema + row-level security | Done |
 | PDF upload and text extraction | Done |
-| AI conversations | Not started |
+| AI conversations | Done |
 | Voice | Not started |
 | Payments | Not started |
 | Privacy Policy / Terms | Placeholder pages only |
@@ -87,6 +87,9 @@ Environment Variables** for every environment you deploy to.
 ```
 TateAI/
 ├── api/
+│   ├── _lib/
+│   │   └── ai/            # Provider-neutral chat interface + adapters
+│   ├── chat.js            # Streaming conversation endpoint
 │   └── documents/
 │       └── extract.js     # Serverless PDF text extraction
 ├── src/
@@ -102,6 +105,33 @@ TateAI/
 ├── vercel.json
 └── vite.config.js
 ```
+
+## AI provider
+
+Chat goes through a provider-neutral interface in `api/_lib/ai/index.js`, which
+holds no vendor SDK calls. Each provider is an adapter exposing one function:
+
+```js
+streamChat({ system, messages, signal, onDelta }) -> Promise<{ text }>
+```
+
+`anthropic` is implemented. To add another, write the adapter, register it in the
+`ADAPTERS` map, and set `AI_PROVIDER`. Nothing else changes.
+
+Set `ANTHROPIC_API_KEY` in Vercel **without** a `VITE_` prefix — a prefixed key
+would be bundled into the browser for anyone to read and spend.
+
+### Context handling
+
+The conversation's documents are packed into the system prompt under a fixed
+character budget (`CONTEXT_BUDGET` in `api/chat.js`), shared evenly so one long
+document cannot crowd out the others. That is adequate for a set of lecture
+slides and **not** adequate for a textbook — long documents are truncated, and
+the model is not told which part was dropped. Retrieval over embeddings is the
+real fix and is not implemented.
+
+The system prompt is cached, so the documents are billed at full price once per
+conversation and as a cheap cache read on every turn after.
 
 ## Data model
 
@@ -122,7 +152,7 @@ keyed off that first path segment.
 1. ~~Move off GitHub Pages to a host that runs server code~~
 2. ~~Auth and database~~
 3. ~~Document upload and text extraction~~
-4. AI conversations over uploaded documents
+4. ~~AI conversations over uploaded documents~~
 5. Voice input and output
 6. Payments
 7. Real legal pages, launch polish

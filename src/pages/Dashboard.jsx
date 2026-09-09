@@ -3,8 +3,10 @@ import { motion } from 'framer-motion'
 import DotBackground from '../components/DotBackground'
 import DocumentUpload from '../components/DocumentUpload'
 import DocumentList from '../components/DocumentList'
+import ConversationPanel from '../components/ConversationPanel'
 import { useAuth } from '../context/AuthContext'
 import { listDocuments } from '../lib/documents'
+import { listConversations } from '../lib/conversations'
 import { supabase } from '../lib/supabase'
 import './Dashboard.css'
 
@@ -14,6 +16,8 @@ const Dashboard = () => {
   const [loadError, setLoadError] = useState('')
   const [documents, setDocuments] = useState([])
   const [documentsLoading, setDocumentsLoading] = useState(true)
+  const [conversations, setConversations] = useState([])
+  const [conversationsLoading, setConversationsLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
@@ -44,12 +48,20 @@ const Dashboard = () => {
     setDocumentsLoading(false)
   }, [])
 
+  const refreshConversations = useCallback(async () => {
+    const { data, error } = await listConversations()
+    if (error) setLoadError(error.message)
+    else setConversations(data ?? [])
+    setConversationsLoading(false)
+  }, [])
+
   useEffect(() => {
-    if (user) refreshDocuments()
-  }, [user, refreshDocuments])
+    if (!user) return
+    refreshDocuments()
+    refreshConversations()
+  }, [user, refreshDocuments, refreshConversations])
 
   const displayName = profile?.full_name?.trim() || user?.email?.split('@')[0] || 'there'
-  const readyCount = documents.filter((doc) => doc.status === 'ready').length
 
   return (
     <div className="dashboard-page">
@@ -88,14 +100,12 @@ const Dashboard = () => {
 
           <section className="dashboard-panel">
             <h2 className="panel-title">Your conversations</h2>
-            <p className="panel-empty">
-              {readyCount
-                ? `${readyCount} document${readyCount === 1 ? '' : 's'} ready to talk about. Conversations are the next milestone.`
-                : 'Upload a document first, then you’ll be able to talk through it here.'}
-            </p>
-            <button className="panel-button" type="button" disabled>
-              Start a conversation
-            </button>
+            <ConversationPanel
+              conversations={conversations}
+              documents={documents}
+              loading={conversationsLoading}
+              onChanged={refreshConversations}
+            />
           </section>
         </motion.div>
       </div>
