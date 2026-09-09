@@ -102,13 +102,120 @@
   border-color: var(--green-dark);
 }
 
-@media (max-width: 768px) {
-  .nav-links {
-    display: none;
-  }
-  
-  .navbar-container {
-    padding: 0 1.5rem;
-  }
+/* Desktop actions cluster (sign in + primary CTA) */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
 }
 
+.nav-action-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-action-link:hover {
+  color: var(--green-primary);
+}
+
+/* The in-panel action list only exists for the mobile layout */
+.nav-links-actions {
+  display: none;
+}
+
+.nav-signout {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Hamburger — hidden until the links collapse */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-toggle-bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  margin: 0 auto;
+  background: var(--text-primary);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.nav-toggle-bar.open:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle-bar.open:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle-bar.open:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 1.5rem;
+    /* Let the expanded link panel drop onto its own row below the logo */
+    flex-wrap: wrap;
+  }
+
+  .nav-toggle {
+    display: flex;
+    order: 3;
+  }
+
+  /* Desktop cluster collapses into the panel below */
+  .nav-actions {
+    display: none;
+  }
+
+  .nav-links {
+    display: none;
+    order: 4;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: 0.5rem 0 1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links a,
+  .nav-signout {
+    width: 100%;
+    padding: 0.85rem 0;
+    font-size: 1rem;
+  }
+
+  .nav-links-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+  }
+}

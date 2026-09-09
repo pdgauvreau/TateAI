@@ -7,15 +7,54 @@
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+
+  /* Updated directly by the component on each animation frame */
+  --mouse-x: -1000px;
+  --mouse-y: -1000px;
+  --highlight-opacity: 0;
+  --dot-spacing: 30px;
+  --dot-radius: 2.5px;
+  --highlight-size: 150px;
 }
 
-.dot {
+.dot-layer {
   position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  transition: background-color 0.15s ease;
-  transform: translate(-50%, -50%);
-  will-change: background-color;
+  inset: 0;
+  background-position: center;
+  background-size: var(--dot-spacing) var(--dot-spacing);
 }
 
+.dot-layer-base {
+  background-image: radial-gradient(
+    circle at center,
+    rgba(209, 213, 219, 0.6) var(--dot-radius),
+    transparent var(--dot-radius)
+  );
+}
+
+/* Same grid in green, revealed only inside a soft circle at the cursor. */
+.dot-layer-highlight {
+  background-image: radial-gradient(
+    circle at center,
+    var(--green-primary) var(--dot-radius),
+    transparent var(--dot-radius)
+  );
+  opacity: var(--highlight-opacity);
+  transition: opacity 0.3s ease;
+  -webkit-mask-image: radial-gradient(
+    circle var(--highlight-size) at var(--mouse-x) var(--mouse-y),
+    rgba(0, 0, 0, 0.9),
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--highlight-size) at var(--mouse-x) var(--mouse-y),
+    rgba(0, 0, 0, 0.9),
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-layer-highlight {
+    display: none;
+  }
+}

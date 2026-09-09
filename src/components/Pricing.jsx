@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import DotBackground from './DotBackground'
 import './Pricing.css'
@@ -142,13 +143,26 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
-                <motion.button
-                  className={`plan-button ${plan.popular ? 'button-primary' : 'button-secondary'}`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {plan.name === 'Institution' ? 'Contact Sales' : 'Get Started'}
-                </motion.button>
+                {plan.name === 'Institution' ? (
+                  <motion.a
+                    href="mailto:sales@tateai.app?subject=Institution%20plan%20enquiry"
+                    className={`plan-button ${plan.popular ? 'button-primary' : 'button-secondary'}`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Contact Sales
+                  </motion.a>
+                ) : (
+                  <Link to="/signup" className="plan-button-link">
+                    <motion.button
+                      className={`plan-button ${plan.popular ? 'button-primary' : 'button-secondary'}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Get Started
+                    </motion.button>
+                  </Link>
+                )}
               </motion.div>
             ))}
           </motion.div>

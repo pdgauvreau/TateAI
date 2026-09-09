@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Claude Code
+.claude/

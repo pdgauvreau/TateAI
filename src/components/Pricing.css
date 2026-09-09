@@ -156,6 +156,7 @@
 
 .plan-button {
   width: 100%;
+  font-family: inherit;
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
@@ -276,3 +277,16 @@
   }
 }
 
+
+/* The Institution CTA is an anchor and the others are wrapped in a Link, so both
+   need the block-level sizing the bare button used to get for free. */
+.plan-button-link {
+  display: block;
+  width: 100%;
+}
+
+a.plan-button {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}

@@ -51,3 +51,12 @@
   animation: float 6s ease-in-out infinite;
 }
 
+
+/* Shown while a guarded route waits for the stored session to load */
+.route-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}

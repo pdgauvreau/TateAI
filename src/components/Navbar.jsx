@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
 import './Navbar.css'
+
+const sectionLinks = [
+  { hash: '#features', label: 'Features' },
+  { hash: '#how-it-works', label: 'How It Works' },
+  { hash: '#research', label: 'Research' },
+  { hash: '#use-cases', label: 'Use Cases' },
+]
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,7 +26,19 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Close the mobile menu on navigation, otherwise it stays open over the new page.
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
+
   const isHomePage = location.pathname === '/'
+  const closeMenu = () => setMenuOpen(false)
+
+  const handleSignOut = async () => {
+    closeMenu()
+    await signOut()
+    navigate('/')
+  }
 
   return (
     <motion.nav
@@ -25,7 +48,7 @@ const Navbar = () => {
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
       <div className="navbar-container">
-        <Link to="/">
+        <Link to="/" onClick={closeMenu}>
           <motion.div
             className="logo"
             whileHover={{ scale: 1.05 }}
@@ -35,39 +58,99 @@ const Navbar = () => {
             <span className="logo-ai">AI</span>
           </motion.div>
         </Link>
-        
-        <div className="nav-links">
-          {isHomePage ? (
+
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="primary-navigation"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <span className={`nav-toggle-bar ${menuOpen ? 'open' : ''}`} />
+          <span className={`nav-toggle-bar ${menuOpen ? 'open' : ''}`} />
+          <span className={`nav-toggle-bar ${menuOpen ? 'open' : ''}`} />
+        </button>
+
+        <div
+          id="primary-navigation"
+          className={`nav-links ${menuOpen ? 'open' : ''}`}
+        >
+          {sectionLinks.map(({ hash, label }) =>
+            isHomePage ? (
+              <a key={hash} href={hash} onClick={closeMenu}>
+                {label}
+              </a>
+            ) : (
+              <Link key={hash} to={`/${hash}`} onClick={closeMenu}>
+                {label}
+              </Link>
+            )
+          )}
+          <Link to="/pricing" onClick={closeMenu}>
+            Pricing
+          </Link>
+
+          {/* Duplicated inside the panel so the primary action is reachable on
+              mobile, where the standalone button is hidden. */}
+          <div className="nav-links-actions">
+            {user ? (
+              <>
+                <Link to="/dashboard" onClick={closeMenu}>
+                  Dashboard
+                </Link>
+                <button type="button" className="nav-signout" onClick={handleSignOut}>
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={closeMenu}>
+                  Sign in
+                </Link>
+                <Link to="/signup" onClick={closeMenu}>
+                  Get Started
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="nav-actions">
+          {user ? (
             <>
-              <a href="#features">Features</a>
-              <a href="#how-it-works">How It Works</a>
-              <a href="#research">Research</a>
-              <a href="#use-cases">Use Cases</a>
+              <Link to="/dashboard" className="nav-action-link">
+                Dashboard
+              </Link>
+              <motion.button
+                className="cta-button"
+                onClick={handleSignOut}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Sign Out
+              </motion.button>
             </>
           ) : (
             <>
-              <Link to="/#features">Features</Link>
-              <Link to="/#how-it-works">How It Works</Link>
-              <Link to="/#research">Research</Link>
-              <Link to="/#use-cases">Use Cases</Link>
+              <Link to="/login" className="nav-action-link">
+                Sign in
+              </Link>
+              <Link to="/signup">
+                <motion.button
+                  className="cta-button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Get Started
+                </motion.button>
+              </Link>
             </>
           )}
-          <Link to="/pricing">Pricing</Link>
         </div>
-
-        <Link to="/pricing">
-          <motion.button
-            className="cta-button"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Get Started
-          </motion.button>
-        </Link>
       </div>
     </motion.nav>
   )
 }
 
 export default Navbar
-

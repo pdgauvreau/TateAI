@@ -1,81 +1,117 @@
-# TATE AI Website
+# TATE AI
 
-A modern, beautiful website showcasing TATE AI - built with React, Vite, and Framer Motion.
+Conversational study tool: upload course materials, then talk through them with AI.
 
-## Features
+Built with React 18, Vite, Framer Motion, and Supabase.
 
-- 🎨 Modern, minimalist design inspired by leading AI companies
-- ⚡ Fast and responsive with smooth animations
-- 🎭 Interactive UI components with Framer Motion
-- 📱 Fully responsive design for all devices
-- 🌈 Beautiful gradient effects and visual elements
+## Status
 
-## Getting Started
+The marketing site and the account foundation are in place. The product itself is not
+yet built — see [Roadmap](#roadmap).
 
-### Prerequisites
+| Area | Status |
+| --- | --- |
+| Marketing site (home, pricing) | Done |
+| Email/password auth, protected routes | Done |
+| Database schema + row-level security | Done |
+| Document upload and parsing | Not started |
+| AI conversations | Not started |
+| Voice | Not started |
+| Payments | Not started |
+| Privacy Policy / Terms | Placeholder pages only |
 
-- Node.js (v16 or higher)
-- npm or yarn
+## Getting started
 
-### Installation
+Requires Node.js 18 or newer.
 
-1. Install dependencies:
+### 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-2. Start the development server:
+### 2. Create a Supabase project
+
+Sign up at [supabase.com](https://supabase.com) and create a project. Then:
+
+- Open **SQL Editor > New query**, paste the contents of
+  `supabase/migrations/0001_init.sql`, and run it. This creates the tables, the
+  row-level security policies, and the private `documents` storage bucket.
+- Go to **Project Settings > API** and copy the project URL and the `anon` public key.
+
+### 3. Configure environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. The app runs without them,
+but auth will be disabled and the console will say so.
+
+### 4. Run
+
 ```bash
 npm run dev
 ```
 
-3. Open your browser and navigate to `http://localhost:5173`
+Open http://localhost:5173.
 
-### Build for Production
+## Environment variables
 
-```bash
-npm run build
-```
+Anything prefixed `VITE_` is **bundled into the client and visible to anyone**. The
+Supabase anon key is designed for this — row-level security is what protects your
+data. Server-only secrets (AI provider keys, the Supabase service role key) must not
+carry the `VITE_` prefix; they belong in serverless functions under `/api`.
 
-The built files will be in the `dist` directory.
+## Deployment
 
-### Preview Production Build
+Deploys to Vercel. `vercel.json` rewrites all non-`/api` paths to `index.html` so
+client-side routing works on refresh and deep links.
 
-```bash
-npm run preview
-```
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in **Vercel > Project Settings >
+Environment Variables** for every environment you deploy to.
 
-## Tech Stack
-
-- **React 18** - UI library
-- **Vite** - Build tool and dev server
-- **Framer Motion** - Animation library
-- **CSS3** - Styling with modern features
-
-## Project Structure
+## Project structure
 
 ```
 TateAI/
 ├── src/
-│   ├── components/
-│   │   ├── Navbar.jsx
-│   │   ├── Hero.jsx
-│   │   ├── Features.jsx
-│   │   └── Footer.jsx
-│   ├── App.jsx
-│   ├── App.css
-│   ├── main.jsx
-│   └── index.css
-├── index.html
-├── package.json
+│   ├── components/        # Marketing sections, navbar, footer, route guard
+│   ├── context/
+│   │   └── AuthContext.jsx
+│   ├── lib/
+│   │   └── supabase.js
+│   └── pages/             # Home, Login, Signup, Dashboard, Legal, NotFound
+├── supabase/
+│   └── migrations/
+├── vercel.json
 └── vite.config.js
 ```
 
-## Customization
+## Data model
 
-The website uses CSS variables for easy theming. You can modify colors, gradients, and other design tokens in `src/index.css`.
+| Table | Purpose |
+| --- | --- |
+| `profiles` | One row per user, created automatically on signup |
+| `documents` | Uploaded slides, assignments, practice exams |
+| `conversations` | A study session |
+| `conversation_documents` | Which documents a conversation draws on |
+| `messages` | Turns within a conversation |
+
+Every table has row-level security enabled and scoped to the owning user. Uploaded
+files live in a private bucket at `<user-id>/<document-id>`, with storage policies
+keyed off that first path segment.
+
+## Roadmap
+
+1. ~~Move off GitHub Pages to a host that runs server code~~
+2. ~~Auth and database~~
+3. Document upload and text extraction
+4. AI conversations over uploaded documents
+5. Voice input and output
+6. Payments
+7. Real legal pages, launch polish
 
 ## License
 
 MIT
-
