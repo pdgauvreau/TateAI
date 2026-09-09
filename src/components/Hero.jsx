@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import './Hero.css'
 
@@ -51,20 +52,24 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
           >
-            <motion.button
-              className="btn-primary"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Get Started
-            </motion.button>
-            <motion.button
-              className="btn-secondary"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Learn More
-            </motion.button>
+            <Link to="/signup">
+              <motion.button
+                className="btn-primary"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Get Started
+              </motion.button>
+            </Link>
+            <a href="#how-it-works">
+              <motion.button
+                className="btn-secondary"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Learn More
+              </motion.button>
+            </a>
           </motion.div>
         </motion.div>
 

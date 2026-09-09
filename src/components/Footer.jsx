@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import './Footer.css'
 
@@ -19,22 +20,36 @@ const Footer = () => {
               <span className="logo-ai">AI</span>
             </div>
             <p className="footer-tagline">
-              Revolutionizing artificial intelligence for the modern world.
+              Learn by talking. Upload your course materials and think them through
+              out loud.
             </p>
           </div>
 
           <div className="footer-links">
             <div className="footer-column">
               <h4>Product</h4>
-              <a href="/#features">Features</a>
-              <a href="/pricing">Pricing</a>
-              <a href="/#how-it-works">How It Works</a>
+              <Link to="/#features">Features</Link>
+              <Link to="/#how-it-works">How It Works</Link>
+              <Link to="/pricing">Pricing</Link>
+            </div>
+
+            <div className="footer-column">
+              <h4>Account</h4>
+              <Link to="/signup">Create account</Link>
+              <Link to="/login">Sign in</Link>
+            </div>
+
+            <div className="footer-column">
+              <h4>Legal</h4>
+              <Link to="/privacy">Privacy Policy</Link>
+              <Link to="/terms">Terms of Service</Link>
+              <a href="mailto:support@tateai.app">Contact</a>
             </div>
           </div>
         </motion.div>
 
         <div className="footer-bottom">
-          <p>&copy; 2024 TATE AI. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} TATE AI. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -42,4 +57,3 @@ const Footer = () => {
 }
 
 export default Footer
-

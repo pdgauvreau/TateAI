@@ -1,0 +1,40 @@
+.legal-page {
+  min-height: 100vh;
+  padding: 10rem 1.5rem 6rem;
+  position: relative;
+}
+
+.legal-container {
+  max-width: 44rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.legal-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin-bottom: 1.5rem;
+}
+
+.legal-body {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  margin-bottom: 1.25rem;
+}
+
+.legal-body a {
+  color: var(--green-dark);
+  font-weight: 600;
+}
+
+.legal-back {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: var(--green-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.legal-back:hover {
+  text-decoration: underline;
+}

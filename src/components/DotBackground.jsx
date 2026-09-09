@@ -1,83 +1,58 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useEffect, useRef } from 'react'
 import './DotBackground.css'
 
+// The dot grid is drawn with two CSS gradient layers rather than one div per dot:
+// a static gray field, and a green copy revealed through a mask that follows the
+// cursor. The pointer position is written straight to CSS custom properties on
+// the container, so moving the mouse never re-renders React.
 const DotBackground = () => {
-  const [mousePosition, setMousePosition] = useState({ x: -1000, y: -1000 })
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+  const containerRef = useRef(null)
 
   useEffect(() => {
-    const updateDimensions = () => {
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      })
+    const el = containerRef.current
+    if (!el) return
+
+    // Nothing to follow on touch devices, and honouring reduced-motion keeps the
+    // static grid without the chasing highlight.
+    const wantsMotion = window.matchMedia('(pointer: fine)').matches &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!wantsMotion) return
+
+    let frame = 0
+    let pending = null
+
+    const flush = () => {
+      frame = 0
+      if (!pending) return
+      el.style.setProperty('--mouse-x', `${pending.x}px`)
+      el.style.setProperty('--mouse-y', `${pending.y}px`)
+      el.style.setProperty('--highlight-opacity', '1')
     }
 
-    updateDimensions()
-    window.addEventListener('resize', updateDimensions)
-
-    const handleMouseMove = (e) => {
-      setMousePosition({
-        x: e.clientX,
-        y: e.clientY
-      })
+    // Coalesce to one write per animation frame; mousemove can fire far faster.
+    const handleMouseMove = (event) => {
+      pending = { x: event.clientX, y: event.clientY }
+      if (!frame) frame = requestAnimationFrame(flush)
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
-    
+    const handleMouseLeave = () => {
+      el.style.setProperty('--highlight-opacity', '0')
+    }
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    document.addEventListener('mouseleave', handleMouseLeave)
+
     return () => {
+      if (frame) cancelAnimationFrame(frame)
       window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('resize', updateDimensions)
+      document.removeEventListener('mouseleave', handleMouseLeave)
     }
   }, [])
 
-  // Generate dots in a grid pattern
-  const dots = useMemo(() => {
-    const dotSpacing = 30
-    const rows = Math.ceil(dimensions.height / dotSpacing) + 2
-    const cols = Math.ceil(dimensions.width / dotSpacing) + 2
-    const dotArray = []
-
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        dotArray.push({
-          id: `${i}-${j}`,
-          x: j * dotSpacing,
-          y: i * dotSpacing
-        })
-      }
-    }
-    return dotArray
-  }, [dimensions.width, dimensions.height])
-
-  const getDotColor = (dotX, dotY) => {
-    const distance = Math.sqrt(
-      Math.pow(mousePosition.x - dotX, 2) + Math.pow(mousePosition.y - dotY, 2)
-    )
-    const maxDistance = 150
-    const intensity = Math.max(0, 1 - distance / maxDistance)
-    
-    if (intensity > 0) {
-      // Interpolate between light gray and green based on distance
-      const greenIntensity = Math.min(1, intensity * 0.9)
-      return `rgba(16, 185, 129, ${greenIntensity})`
-    }
-    return 'rgba(209, 213, 219, 0.6)' // darker gray for more contrast
-  }
-
   return (
-    <div className="dot-background">
-      {dots.map((dot) => (
-        <div
-          key={dot.id}
-          className="dot"
-          style={{
-            left: `${dot.x}px`,
-            top: `${dot.y}px`,
-            backgroundColor: getDotColor(dot.x, dot.y)
-          }}
-        />
-      ))}
+    <div className="dot-background" ref={containerRef} aria-hidden="true">
+      <div className="dot-layer dot-layer-base" />
+      <div className="dot-layer dot-layer-highlight" />
     </div>
   )
 }
