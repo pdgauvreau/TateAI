@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import DotBackground from '../components/DotBackground'
+import DocumentUpload from '../components/DocumentUpload'
+import DocumentList from '../components/DocumentList'
 import { useAuth } from '../context/AuthContext'
+import { listDocuments } from '../lib/documents'
 import { supabase } from '../lib/supabase'
 import './Dashboard.css'
 
@@ -9,6 +12,8 @@ const Dashboard = () => {
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
   const [loadError, setLoadError] = useState('')
+  const [documents, setDocuments] = useState([])
+  const [documentsLoading, setDocumentsLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
@@ -32,7 +37,19 @@ const Dashboard = () => {
     }
   }, [user])
 
+  const refreshDocuments = useCallback(async () => {
+    const { data, error } = await listDocuments()
+    if (error) setLoadError(error.message)
+    else setDocuments(data ?? [])
+    setDocumentsLoading(false)
+  }, [])
+
+  useEffect(() => {
+    if (user) refreshDocuments()
+  }, [user, refreshDocuments])
+
   const displayName = profile?.full_name?.trim() || user?.email?.split('@')[0] || 'there'
+  const readyCount = documents.filter((doc) => doc.status === 'ready').length
 
   return (
     <div className="dashboard-page">
@@ -51,7 +68,7 @@ const Dashboard = () => {
           </p>
         </motion.header>
 
-        {loadError && <div className="dashboard-error">Could not load your profile: {loadError}</div>}
+        {loadError && <div className="dashboard-error">{loadError}</div>}
 
         <motion.div
           className="dashboard-grid"
@@ -61,20 +78,20 @@ const Dashboard = () => {
         >
           <section className="dashboard-panel">
             <h2 className="panel-title">Your materials</h2>
-            <p className="panel-empty">
-              No documents yet. Uploading slides, assignments, and practice exams is the
-              next milestone.
-            </p>
-            <button className="panel-button" type="button" disabled>
-              Upload materials
-            </button>
+            <DocumentUpload onUploaded={refreshDocuments} />
+            <DocumentList
+              documents={documents}
+              loading={documentsLoading}
+              onChanged={refreshDocuments}
+            />
           </section>
 
           <section className="dashboard-panel">
             <h2 className="panel-title">Your conversations</h2>
             <p className="panel-empty">
-              No conversations yet. Once your materials are uploaded, you&apos;ll be able to
-              talk through them here.
+              {readyCount
+                ? `${readyCount} document${readyCount === 1 ? '' : 's'} ready to talk about. Conversations are the next milestone.`
+                : 'Upload a document first, then you’ll be able to talk through it here.'}
             </p>
             <button className="panel-button" type="button" disabled>
               Start a conversation

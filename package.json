@@ -6,14 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:api": "vercel dev"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
     "framer-motion": "^10.16.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.18.3"
+    "react-router-dom": "^7.18.3",
+    "unpdf": "^1.8.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",

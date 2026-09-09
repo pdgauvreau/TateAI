@@ -1,0 +1,99 @@
+.doc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--light-gray-3);
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--light-gray-3);
+}
+
+.doc-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.doc-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.doc-detail {
+  font-size: 0.8rem;
+  color: #991b1b;
+  margin-top: 0.2rem;
+}
+
+.doc-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.55rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-ready {
+  background: var(--green-lighter);
+  color: var(--green-darker);
+}
+
+.status-pending,
+.status-processing {
+  background: var(--light-gray-2);
+  color: var(--dark-gray-4);
+}
+
+.status-failed {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.doc-delete {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  font-size: 1.2rem;
+  line-height: 1;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--dark-gray-4);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.doc-delete:hover:not(:disabled) {
+  color: #dc2626;
+  border-color: var(--border-color);
+}
+
+.doc-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.doc-error {
+  margin-bottom: 1rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  background: #fef2f2;
+  border-left: 3px solid #dc2626;
+  color: #991b1b;
+}

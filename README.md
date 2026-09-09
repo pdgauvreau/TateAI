@@ -14,7 +14,7 @@ yet built — see [Roadmap](#roadmap).
 | Marketing site (home, pricing) | Done |
 | Email/password auth, protected routes | Done |
 | Database schema + row-level security | Done |
-| Document upload and parsing | Not started |
+| PDF upload and text extraction | Done |
 | AI conversations | Not started |
 | Voice | Not started |
 | Payments | Not started |
@@ -56,6 +56,17 @@ npm run dev
 
 Open http://localhost:5173.
 
+`npm run dev` runs Vite only, which does **not** serve the `/api` routes. Document
+upload will fail at the extraction step with a message saying so. To run the app and
+the serverless functions together:
+
+```bash
+npm run dev:api
+```
+
+That runs `vercel dev`, so it needs the Vercel CLI (`npm i -g vercel`) and a linked
+project (`vercel link`).
+
 ## Environment variables
 
 Anything prefixed `VITE_` is **bundled into the client and visible to anyone**. The
@@ -75,11 +86,15 @@ Environment Variables** for every environment you deploy to.
 
 ```
 TateAI/
+├── api/
+│   └── documents/
+│       └── extract.js     # Serverless PDF text extraction
 ├── src/
-│   ├── components/        # Marketing sections, navbar, footer, route guard
+│   ├── components/        # Marketing sections, navbar, footer, upload, route guard
 │   ├── context/
 │   │   └── AuthContext.jsx
 │   ├── lib/
+│   │   ├── documents.js
 │   │   └── supabase.js
 │   └── pages/             # Home, Login, Signup, Dashboard, Legal, NotFound
 ├── supabase/
@@ -106,7 +121,7 @@ keyed off that first path segment.
 
 1. ~~Move off GitHub Pages to a host that runs server code~~
 2. ~~Auth and database~~
-3. Document upload and text extraction
+3. ~~Document upload and text extraction~~
 4. AI conversations over uploaded documents
 5. Voice input and output
 6. Payments
