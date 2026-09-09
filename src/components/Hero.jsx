@@ -42,8 +42,8 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            Upload slides, assignments, and exams. Talk through concepts with AI. 
-            Research shows conversational learning improves retention by 40%—study smarter, not harder.
+            Upload slides, assignments, and exams. Talk through concepts with AI.
+            Explaining ideas out loud is one of the best-evidenced ways to learn—study smarter, not harder.
           </motion.p>
 
           <motion.div

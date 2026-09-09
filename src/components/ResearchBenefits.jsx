@@ -8,14 +8,14 @@ const ResearchBenefits = () => {
       label: 'Production Effect | Speak to Remember',
       title: 'The Production Effect',
       description: 'Research shows that speaking information aloud (the "production effect") significantly improves memory retention compared to silent reading. Talking activates multiple brain regions, creating stronger memory traces.',
-      stat: '40% Better Retention',
+      stat: 'Better Retention',
       source: 'MacLeod et al., 2010'
     },
     {
       label: 'Active Recall | Explain to Strengthen',
       title: 'Active Recall Through Dialogue',
       description: 'Explaining concepts to someone else forces you to retrieve information from memory, strengthening neural pathways. This active recall is one of the most effective learning techniques known to cognitive science.',
-      stat: '2x More Effective',
+      stat: 'Stronger Than Rereading',
       source: 'Karpicke & Blunt, 2011'
     },
     {
@@ -36,7 +36,7 @@ const ResearchBenefits = () => {
       label: 'Spaced Repetition | Review Optimally',
       title: 'Spaced Repetition',
       description: 'TATE AI tracks what you\'ve discussed and when, helping you review concepts at optimal intervals. Spaced repetition is proven to dramatically improve long-term retention.',
-      stat: '3x Long-term Retention',
+      stat: 'Durable Recall',
       source: 'Cepeda et al., 2006'
     },
     {

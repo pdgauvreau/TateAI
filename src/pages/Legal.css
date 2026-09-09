@@ -38,3 +38,61 @@
 .legal-back:hover {
   text-decoration: underline;
 }
+
+.legal-date {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 2.5rem;
+}
+
+.legal-section {
+  margin-bottom: 2.25rem;
+}
+
+.legal-heading {
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.legal-body,
+.legal-body p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.legal-body p + p {
+  margin-top: 0.9rem;
+}
+
+.legal-body ul {
+  margin: 0.9rem 0 0.9rem 1.25rem;
+  color: var(--text-secondary);
+}
+
+.legal-body li {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+}
+
+.legal-body strong {
+  color: var(--text-primary);
+}
+
+.legal-body a {
+  color: var(--green-dark);
+  font-weight: 600;
+}
+
+.legal-crosslink {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--light-gray-3);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.legal-crosslink a {
+  color: var(--green-dark);
+  font-weight: 600;
+}

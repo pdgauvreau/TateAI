@@ -107,6 +107,15 @@ const Pricing = () => {
           >
             Choose the plan that fits your learning needs. All plans include our core conversational learning features.
           </motion.p>
+          <motion.p
+            className="pricing-notice"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            TATE AI is in early access. Plans are not purchasable yet — creating an account is
+            free, and these prices are what we intend to charge when billing opens.
+          </motion.p>
         </div>
       </section>
 
@@ -190,20 +199,20 @@ const Pricing = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <div className="faq-item">
-              <h3 className="faq-question">Can I change plans later?</h3>
-              <p className="faq-answer">Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
+              <h3 className="faq-question">What does it cost right now?</h3>
+              <p className="faq-answer">Nothing. TATE AI is in early access and billing is not switched on yet. We will tell you well before that changes.</p>
             </div>
             <div className="faq-item">
-              <h3 className="faq-question">Is there a free trial?</h3>
-              <p className="faq-answer">Yes, all plans come with a 14-day free trial. No credit card required.</p>
+              <h3 className="faq-question">What can it read?</h3>
+              <p className="faq-answer">PDFs, up to 25 MB each — lecture slides, assignment prompts, and practice exams. Scanned documents with no selectable text cannot be read yet.</p>
             </div>
             <div className="faq-item">
-              <h3 className="faq-question">What happens to my data if I cancel?</h3>
-              <p className="faq-answer">Your data is yours. You can export all your conversations and materials before canceling.</p>
+              <h3 className="faq-question">Can I get my data out?</h3>
+              <p className="faq-answer">Yes. Export everything we hold — your profile, documents, and full conversation history — from your dashboard at any time.</p>
             </div>
             <div className="faq-item">
-              <h3 className="faq-question">Do you offer student discounts?</h3>
-              <p className="faq-answer">Yes, students with a valid .edu email address get 20% off any plan.</p>
+              <h3 className="faq-question">Will it do my homework?</h3>
+              <p className="faq-answer">No, by design. It asks questions and gives hints rather than finished answers. You are responsible for following your institution's rules on AI use.</p>
             </div>
           </motion.div>
         </div>

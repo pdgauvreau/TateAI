@@ -7,6 +7,7 @@ import ConversationPanel from '../components/ConversationPanel'
 import { useAuth } from '../context/AuthContext'
 import { listDocuments } from '../lib/documents'
 import { listConversations } from '../lib/conversations'
+import { exportAllData } from '../lib/exportData'
 import { supabase } from '../lib/supabase'
 import './Dashboard.css'
 
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const [documentsLoading, setDocumentsLoading] = useState(true)
   const [conversations, setConversations] = useState([])
   const [conversationsLoading, setConversationsLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -61,6 +63,14 @@ const Dashboard = () => {
     refreshConversations()
   }, [user, refreshDocuments, refreshConversations])
 
+  const handleExport = async () => {
+    setLoadError('')
+    setExporting(true)
+    const { error } = await exportAllData()
+    setExporting(false)
+    if (error) setLoadError(`Export failed: ${error}`)
+  }
+
   const displayName = profile?.full_name?.trim() || user?.email?.split('@')[0] || 'there'
 
   return (
@@ -78,6 +88,14 @@ const Dashboard = () => {
           <p className="dashboard-subtitle">
             {profile ? `You're on the ${profile.plan} plan.` : 'Loading your profile…'}
           </p>
+          <button
+            type="button"
+            className="dashboard-export"
+            onClick={handleExport}
+            disabled={exporting}
+          >
+            {exporting ? 'Preparing export…' : 'Export my data'}
+          </button>
         </motion.header>
 
         {loadError && <div className="dashboard-error">{loadError}</div>}

@@ -83,3 +83,26 @@
   color: var(--dark-gray-4);
   cursor: not-allowed;
 }
+
+.dashboard-export {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.dashboard-export:hover:not(:disabled) {
+  border-color: var(--green-primary);
+  color: var(--green-dark);
+}
+
+.dashboard-export:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

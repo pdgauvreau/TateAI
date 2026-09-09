@@ -290,3 +290,15 @@ a.plan-button {
   text-align: center;
   text-decoration: none;
 }
+
+.pricing-notice {
+  max-width: 34rem;
+  margin: 1.5rem auto 0;
+  padding: 0.85rem 1.1rem;
+  background: var(--green-lighter);
+  border-left: 3px solid var(--green-primary);
+  color: var(--green-darker);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  text-align: left;
+}

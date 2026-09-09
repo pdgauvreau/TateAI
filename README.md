@@ -18,7 +18,7 @@ yet built — see [Roadmap](#roadmap).
 | AI conversations | Done |
 | Voice (dictation + spoken replies) | Done |
 | Payments | Not started |
-| Privacy Policy / Terms | Placeholder pages only |
+| Privacy Policy / Terms | Drafted — needs legal review and placeholders filled |
 
 ## Getting started
 
@@ -133,6 +133,22 @@ real fix and is not implemented.
 The system prompt is cached, so the documents are billed at full price once per
 conversation and as a cheap cache read on every turn after.
 
+## Before launch
+
+`src/pages/legalContent.jsx` holds the Privacy Policy and Terms. They describe the
+service's actual data flows accurately, but they are **not legal advice and have
+not been reviewed by a lawyer**. Two placeholders must be filled in first:
+
+- `OPERATOR` — your full legal name
+- `STATE` — your state, for the governing-law clause
+
+`support@tateai.app` must also receive mail before these go live; the policy
+points people there to request account deletion.
+
+Still missing and load-bearing: there is **no rate limiting** on `/api/chat`, so
+any signed-up account can spend against the Anthropic key without limit. Set a
+spend cap in the Anthropic console as a backstop.
+
 ## Voice
 
 Uses the browser's built-in Web Speech API — no extra vendor, key, or per-minute
@@ -167,7 +183,7 @@ keyed off that first path segment.
 4. ~~AI conversations over uploaded documents~~
 5. ~~Voice input and output~~
 6. Payments
-7. Real legal pages, launch polish
+7. Legal pages and honest marketing copy — drafted, pending review
 
 ## License
 
