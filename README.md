@@ -16,7 +16,7 @@ yet built — see [Roadmap](#roadmap).
 | Database schema + row-level security | Done |
 | PDF upload and text extraction | Done |
 | AI conversations | Done |
-| Voice | Not started |
+| Voice (dictation + spoken replies) | Done |
 | Payments | Not started |
 | Privacy Policy / Terms | Placeholder pages only |
 
@@ -133,6 +133,18 @@ real fix and is not implemented.
 The system prompt is cached, so the documents are billed at full price once per
 conversation and as a cheap cache read on every turn after.
 
+## Voice
+
+Uses the browser's built-in Web Speech API — no extra vendor, key, or per-minute
+cost. `src/lib/speech.js` wraps both halves and feature-detects them; the mic
+button and the read-aloud toggle are hidden entirely where the browser lacks
+support rather than offered as controls that do nothing.
+
+Support is uneven: recognition works in Chrome, Edge, and Safari, and is absent
+or behind a flag in Firefox. Replies are spoken a sentence at a time as they
+stream, since waiting for the full reply leaves a long silence and speaking each
+network chunk breaks words mid-syllable.
+
 ## Data model
 
 | Table | Purpose |
@@ -153,7 +165,7 @@ keyed off that first path segment.
 2. ~~Auth and database~~
 3. ~~Document upload and text extraction~~
 4. ~~AI conversations over uploaded documents~~
-5. Voice input and output
+5. ~~Voice input and output~~
 6. Payments
 7. Real legal pages, launch polish
 

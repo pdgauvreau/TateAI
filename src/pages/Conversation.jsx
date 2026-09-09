@@ -7,7 +7,17 @@ import {
   listMessages,
   sendMessage,
 } from '../lib/conversations'
+import {
+  cancelSpeech,
+  recognitionSupported,
+  speak,
+  splitSentences,
+  synthesisSupported,
+  startDictation,
+} from '../lib/speech'
 import './Conversation.css'
+
+const SPEAK_PREF_KEY = 'tateai:speak-replies'
 
 const Conversation = () => {
   const { id } = useParams()
@@ -21,8 +31,24 @@ const Conversation = () => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
+  const [listening, setListening] = useState(false)
+  const [speakReplies, setSpeakReplies] = useState(() => {
+    // Reading storage can throw in private windows, so never let it break the page.
+    try {
+      return localStorage.getItem(SPEAK_PREF_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+
   const abortRef = useRef(null)
   const bottomRef = useRef(null)
+  const dictationRef = useRef(null)
+  // Text spoken so far, plus the tail that hasn't reached a sentence boundary.
+  const spokenBufferRef = useRef('')
+  // Read inside the streaming callback, which closes over the value at send time.
+  const speakRef = useRef(speakReplies)
+  speakRef.current = speakReplies
 
   useEffect(() => {
     let active = true
@@ -41,8 +67,41 @@ const Conversation = () => {
     return () => {
       active = false
       abortRef.current?.abort()
+      dictationRef.current?.stop()
+      // Otherwise the browser keeps talking after the student navigates away.
+      cancelSpeech()
     }
   }, [id])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SPEAK_PREF_KEY, speakReplies ? '1' : '0')
+    } catch {
+      /* private window — the toggle still works for this session */
+    }
+    if (!speakReplies) cancelSpeech()
+  }, [speakReplies])
+
+  const toggleDictation = useCallback(() => {
+    if (listening) {
+      dictationRef.current?.stop()
+      return
+    }
+
+    setError('')
+    // Speaking and listening at once makes the mic hear the reply.
+    cancelSpeech()
+
+    dictationRef.current = startDictation({
+      onResult: ({ transcript, isFinal }) => {
+        if (isFinal) setDraft((prev) => (prev ? `${prev} ${transcript}` : transcript))
+      },
+      onError: (message) => setError(message),
+      onEnd: () => setListening(false),
+    })
+
+    if (dictationRef.current) setListening(true)
+  }, [listening])
 
   // Keep the newest turn in view as the reply streams in.
   useEffect(() => {
@@ -59,6 +118,8 @@ const Conversation = () => {
       setDraft('')
       setBusy(true)
       setStreaming('')
+      spokenBufferRef.current = ''
+      cancelSpeech()
       // Show the student's own turn immediately; the server persists the
       // authoritative copy.
       setMessages((prev) => [...prev, { id: `local-${Date.now()}`, role: 'user', content: text }])
@@ -70,12 +131,27 @@ const Conversation = () => {
         conversationId: id,
         message: text,
         signal: controller.signal,
-        onDelta: (chunk) => setStreaming((prev) => prev + chunk),
+        onDelta: (chunk) => {
+          setStreaming((prev) => prev + chunk)
+          if (!speakRef.current) return
+          // Speak whole sentences as they complete rather than each network chunk.
+          spokenBufferRef.current += chunk
+          const [sentences, remainder] = splitSentences(spokenBufferRef.current)
+          spokenBufferRef.current = remainder
+          sentences.forEach(speak)
+        },
       })
 
       abortRef.current = null
       setBusy(false)
       setStreaming('')
+
+      // Anything left over never hit a sentence boundary — speak it so the reply
+      // does not end mid-thought.
+      if (speakRef.current && spokenBufferRef.current.trim()) {
+        speak(spokenBufferRef.current)
+      }
+      spokenBufferRef.current = ''
 
       if (result.error) {
         setError(result.error)
@@ -105,6 +181,16 @@ const Conversation = () => {
           </h1>
           {documents.length > 0 && (
             <p className="conversation-docs">Using: {documents.join(', ')}</p>
+          )}
+          {synthesisSupported && (
+            <label className="speak-toggle">
+              <input
+                type="checkbox"
+                checked={speakReplies}
+                onChange={(e) => setSpeakReplies(e.target.checked)}
+              />
+              <span>Read replies aloud</span>
+            </label>
           )}
         </header>
 
@@ -145,10 +231,23 @@ const Conversation = () => {
               // Enter sends, Shift+Enter breaks the line — chat convention.
               if (e.key === 'Enter' && !e.shiftKey) handleSubmit(e)
             }}
-            placeholder="Explain a concept, or ask a question…"
+            placeholder={listening ? 'Listening…' : 'Explain a concept, or ask a question…'}
             rows={2}
             disabled={busy}
           />
+          {recognitionSupported && (
+            <button
+              type="button"
+              className={`composer-mic ${listening ? 'listening' : ''}`}
+              onClick={toggleDictation}
+              disabled={busy}
+              aria-pressed={listening}
+              aria-label={listening ? 'Stop dictating' : 'Dictate your message'}
+              title={listening ? 'Stop dictating' : 'Dictate your message'}
+            >
+              ●
+            </button>
+          )}
           <button className="composer-send" type="submit" disabled={busy || !draft.trim()}>
             {busy ? '…' : 'Send'}
           </button>
