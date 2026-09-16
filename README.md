@@ -145,9 +145,21 @@ not been reviewed by a lawyer**. Two placeholders must be filled in first:
 `support@tateai.app` must also receive mail before these go live; the policy
 points people there to request account deletion.
 
-Still missing and load-bearing: there is **no rate limiting** on `/api/chat`, so
-any signed-up account can spend against the Anthropic key without limit. Set a
-spend cap in the Anthropic console as a backstop.
+Set a spend cap in the Anthropic console as a backstop — the app-level limits
+below bound normal use, but only the provider can stop spend unconditionally.
+
+## Usage limits
+
+`/api/chat` enforces a per-user cap over a rolling 24-hour window, from
+`shared/plans.js` (free 25, student 250, pro 1000, institution unlimited). That
+file is imported by both the API and the dashboard so the number shown can never
+drift from the number enforced.
+
+Usage is metered in `usage_events` rather than counted from `messages`: counting
+messages would mean joining through `conversations` to reach a user id, and a
+student deleting a conversation would erase the record of what it cost. The table
+has select and insert policies but deliberately **no update or delete policy**, so
+a user can only ever add to their own usage, never remove it.
 
 ## Voice
 

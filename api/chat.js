@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { streamChat, ProviderNotConfiguredError } from './_lib/ai/index.js'
+import { checkUsage, recordUsage, describeReset } from './_lib/limits.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY
@@ -75,6 +76,19 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid or expired session.' })
   }
 
+  // Checked before any model work, and before the user's message is written, so
+  // a refused turn leaves no trace in the conversation.
+  const usage = await checkUsage(supabase, user.id)
+  if (!usage.allowed) {
+    res.setHeader('Retry-After', String(Math.max(60, Math.round((new Date(usage.resetAt) - Date.now()) / 1000))))
+    return res.status(429).json({
+      error: `You've used all ${usage.limit} messages for today. You can send another ${describeReset(usage.resetAt)}.`,
+      limit: usage.limit,
+      used: usage.used,
+      resetAt: usage.resetAt,
+    })
+  }
+
   const { data: conversation, error: conversationError } = await supabase
     .from('conversations')
     .select('id')
@@ -106,6 +120,11 @@ export default async function handler(req, res) {
   if (userMessageError) {
     return res.status(500).json({ error: userMessageError.message })
   }
+
+  // Counted here rather than after the reply: the cost is incurred the moment we
+  // call the provider, so a request that fails mid-stream still spent money and
+  // still counts.
+  await recordUsage(supabase, user.id)
 
   const priorTurns = (history ?? [])
     .filter((turn) => turn.role !== 'system')

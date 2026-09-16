@@ -155,6 +155,12 @@ const Conversation = () => {
 
       if (result.error) {
         setError(result.error)
+        // Hitting the cap is not a failure to retry — put their message back in
+        // the box rather than losing it, and drop the optimistic turn.
+        if (result.rateLimited) {
+          setDraft(text)
+          setMessages((prev) => prev.filter((m) => !String(m.id).startsWith('local-')))
+        }
         return
       }
 

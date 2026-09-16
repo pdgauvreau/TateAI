@@ -6,7 +6,8 @@ import DocumentList from '../components/DocumentList'
 import ConversationPanel from '../components/ConversationPanel'
 import { useAuth } from '../context/AuthContext'
 import { listDocuments } from '../lib/documents'
-import { listConversations } from '../lib/conversations'
+import { listConversations, getUsage } from '../lib/conversations'
+import { limitForPlan } from '../../shared/plans'
 import { exportAllData } from '../lib/exportData'
 import { supabase } from '../lib/supabase'
 import './Dashboard.css'
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const [conversations, setConversations] = useState([])
   const [conversationsLoading, setConversationsLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
+  const [used, setUsed] = useState(null)
 
   useEffect(() => {
     if (!user) return
@@ -61,6 +63,9 @@ const Dashboard = () => {
     if (!user) return
     refreshDocuments()
     refreshConversations()
+    getUsage(user.id).then((r) => {
+      if (!r.error) setUsed(r.used)
+    })
   }, [user, refreshDocuments, refreshConversations])
 
   const handleExport = async () => {
@@ -87,6 +92,12 @@ const Dashboard = () => {
           <h1 className="dashboard-title">Welcome back, {displayName}</h1>
           <p className="dashboard-subtitle">
             {profile ? `You're on the ${profile.plan} plan.` : 'Loading your profile…'}
+            {profile && used !== null && limitForPlan(profile.plan) !== null && (
+              <span className="dashboard-usage">
+                {' '}
+                {used} of {limitForPlan(profile.plan)} messages used in the last 24 hours.
+              </span>
+            )}
           </p>
           <button
             type="button"

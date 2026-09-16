@@ -1,5 +1,19 @@
 import { supabase } from './supabase'
 
+const WINDOW_HOURS = 24
+
+/** Reads this user's usage in the rolling window. RLS scopes it to their rows. */
+export const getUsage = async (userId) => {
+  const windowStart = new Date(Date.now() - WINDOW_HOURS * 3600 * 1000).toISOString()
+  const { count, error } = await supabase
+    .from('usage_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', windowStart)
+  if (error) return { error: error.message }
+  return { used: count ?? 0 }
+}
+
 export const listConversations = async () =>
   supabase
     .from('conversations')
@@ -85,6 +99,15 @@ export const sendMessage = async ({ conversationId, message, onDelta, signal }) 
 
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}))
+    // The server already phrases the limit message for a person; flag it so the
+    // UI can present it as a quota notice rather than a failure.
+    if (response.status === 429) {
+      return {
+        error: payload.error ?? 'You have reached your message limit for today.',
+        rateLimited: true,
+        resetAt: payload.resetAt ?? null,
+      }
+    }
     return { error: payload.error ?? `Request failed (${response.status}).` }
   }
 
