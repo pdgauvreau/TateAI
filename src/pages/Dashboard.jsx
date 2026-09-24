@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [exporting, setExporting] = useState(false)
   const [used, setUsed] = useState(null)
   const [openingPortal, setOpeningPortal] = useState(false)
+  const [confirmSlow, setConfirmSlow] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const justPaid = searchParams.get('checkout') === 'success'
 
@@ -55,8 +56,11 @@ const Dashboard = () => {
       setProfile(data)
 
       const upgraded = data.plan !== 'free'
-      if (justPaid && !upgraded && attempt < 8) {
-        timer = setTimeout(() => poll(attempt + 1), 1500)
+      if (justPaid && !upgraded) {
+        // Keep checking for about a minute, slowing down as it goes, then say so
+        // plainly rather than leaving "confirming…" up indefinitely.
+        if (attempt < 12) timer = setTimeout(() => poll(attempt + 1), attempt < 6 ? 2000 : 5000)
+        else setConfirmSlow(true)
       }
     }
 
@@ -176,6 +180,13 @@ const Dashboard = () => {
                 <button type="button" className="notice-dismiss" onClick={() => setSearchParams({})}>
                   Dismiss
                 </button>
+              </>
+            ) : confirmSlow ? (
+              <>
+                Your payment went through, but confirming your plan is taking longer than usual.
+                You won&apos;t be charged again — refresh in a few minutes, and if your plan still
+                hasn&apos;t changed, email{' '}
+                <a href="mailto:support@tateai.app">support@tateai.app</a>.
               </>
             ) : (
               'Payment received — confirming your plan with Stripe…'

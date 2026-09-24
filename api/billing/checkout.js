@@ -77,6 +77,13 @@ export async function POST(request) {
     const { data: prices } = await stripe().prices.list({ lookup_keys: [lookupKey], active: true })
     if (!prices.length) return json({ error: 'That plan is not available right now.' }, 500)
 
+    // Expire any checkout this customer left open. An abandoned session keeps a
+    // working payment link for 24 hours, so two tabs, or a stale link from an
+    // earlier attempt, could each be paid and leave the student with two
+    // subscriptions billing every month. Only the newest session stays payable.
+    const open = await stripe().checkout.sessions.list({ customer: customerId, status: 'open', limit: 10 })
+    await Promise.all(open.data.map((s) => stripe().checkout.sessions.expire(s.id).catch(() => null)))
+
     const origin = new URL(request.url).origin
     const session = await stripe().checkout.sessions.create({
       mode: 'subscription',
