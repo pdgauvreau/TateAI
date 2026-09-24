@@ -19,7 +19,12 @@ const customerOf = (object) =>
   typeof object?.customer === 'string' ? object.customer : (object?.customer?.id ?? null)
 
 export async function POST(request) {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET
+  // Trimmed because an invisible prefix or suffix makes every signature check
+  // fail. Windows PowerShell prepends a UTF-8 byte-order mark when piping text
+  // into `vercel env add`, which is exactly how this broke the first time.
+  // String.prototype.trim removes U+FEFF as well as ordinary whitespace, and no
+  // whsec_ value legitimately contains either.
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim()
   if (!secret) return json({ error: 'STRIPE_WEBHOOK_SECRET is not set.' }, 500)
 
   // The signature covers the exact bytes Stripe sent, so this must be the raw
