@@ -2,13 +2,12 @@ import React from 'react'
 
 // These are drafts written to describe accurately what the service actually does
 // with data — which is the part a generic template gets wrong. They are not legal
-// advice and have not been reviewed by a lawyer. Anything in [BRACKETS] is a
-// placeholder that must be filled in before launch.
+// advice and have not been reviewed by a lawyer.
 
 export const EFFECTIVE_DATE = 'September 9, 2026'
 export const CONTACT_EMAIL = 'support@tateai.app'
-export const OPERATOR = '[YOUR FULL LEGAL NAME]'
-export const STATE = '[YOUR STATE]'
+export const OPERATOR = 'Paul Gauvreau'
+export const STATE = 'Utah'
 
 export const privacy = [
   {
