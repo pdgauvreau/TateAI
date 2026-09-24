@@ -278,13 +278,8 @@
 }
 
 
-/* The Institution CTA is an anchor and the others are wrapped in a Link, so both
-   need the block-level sizing the bare button used to get for free. */
-.plan-button-link {
-  display: block;
-  width: 100%;
-}
-
+/* The Institution CTA is an anchor, so it needs the block-level sizing a
+   button gets for free. */
 a.plan-button {
   display: block;
   text-align: center;
@@ -301,4 +296,30 @@ a.plan-button {
   font-size: 0.92rem;
   line-height: 1.6;
   text-align: left;
+}
+
+.pricing-status {
+  max-width: 40rem;
+  margin: 0 auto 2rem;
+  padding: 0.85rem 1.1rem;
+  background: var(--light-gray-2);
+  border-left: 3px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.pricing-status-error {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #991b1b;
+}
+
+.pricing-status a {
+  color: inherit;
+  font-weight: 600;
+}
+
+.plan-button:disabled {
+  opacity: 0.7;
+  cursor: progress;
 }

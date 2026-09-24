@@ -1,41 +1,69 @@
-import React, { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import DotBackground from './DotBackground'
+import { useAuth } from '../context/AuthContext'
+import { startCheckout } from '../lib/billing'
 import './Pricing.css'
 
 const Pricing = () => {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const [pendingPlan, setPendingPlan] = useState(null)
+  const [checkoutError, setCheckoutError] = useState('')
+  const [pointToManage, setPointToManage] = useState(false)
+
+  const cancelled = searchParams.get('checkout') === 'cancelled'
+
+  const choosePlan = async (planKey) => {
+    setCheckoutError('')
+    setPointToManage(false)
+
+    // Signed-out visitors create an account first; checkout needs a user to
+    // attach the subscription to.
+    if (!user) {
+      navigate('/signup')
+      return
+    }
+
+    setPendingPlan(planKey)
+    const result = await startCheckout(planKey)
+    // startCheckout navigates away on success, so reaching here means it failed.
+    setPendingPlan(null)
+    setCheckoutError(result.error ?? 'Could not start checkout.')
+    setPointToManage(Boolean(result.manage))
+  }
+
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
   const plans = [
     {
       name: 'Student',
+      planKey: 'student',
       price: '$18',
       period: '/month',
-      description: 'Perfect for individual students looking to improve their study habits',
+      description: 'For regular study sessions through the semester',
       features: [
-        'Upload up to 50 documents per month',
-        'Unlimited conversations',
-        'Progress tracking',
-        'Basic AI analysis',
-        'Email support'
+        '250 messages a day — 10× the free plan',
+        'Upload lecture slides, assignments, and practice exams',
+        'Talk it through out loud with voice',
+        'Export all your data any time',
+        'Cancel any time'
       ],
       popular: false
     },
     {
       name: 'Pro',
+      planKey: 'pro',
       price: '$26',
       period: '/month',
-      description: 'For serious students who want advanced features and priority support',
+      description: 'For heavy use — exam season, several courses at once',
       features: [
-        'Unlimited document uploads',
-        'Unlimited conversations',
-        'Advanced progress analytics',
-        'Deep AI analysis & insights',
-        'Priority support',
-        'Custom study plans',
-        'Export study reports'
+        '1,000 messages a day — 4× Student',
+        'Everything in Student',
+        'Cancel any time'
       ],
       popular: true
     },
@@ -121,6 +149,20 @@ const Pricing = () => {
 
       <section className="pricing-plans">
         <div className="pricing-container">
+          {cancelled && !checkoutError && (
+            <div className="pricing-status">Checkout cancelled — you haven&apos;t been charged.</div>
+          )}
+          {checkoutError && (
+            <div className="pricing-status pricing-status-error" role="alert">
+              {checkoutError}
+              {pointToManage && (
+                <>
+                  {' '}
+                  <Link to="/dashboard">Go to your dashboard</Link>
+                </>
+              )}
+            </div>
+          )}
           <motion.div
             className="plans-grid"
             variants={containerVariants}
@@ -162,15 +204,20 @@ const Pricing = () => {
                     Contact Sales
                   </motion.a>
                 ) : (
-                  <Link to="/signup" className="plan-button-link">
-                    <motion.button
-                      className={`plan-button ${plan.popular ? 'button-primary' : 'button-secondary'}`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Get Started
-                    </motion.button>
-                  </Link>
+                  <motion.button
+                    type="button"
+                    className={`plan-button ${plan.popular ? 'button-primary' : 'button-secondary'}`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => choosePlan(plan.planKey)}
+                    disabled={pendingPlan !== null}
+                  >
+                    {pendingPlan === plan.planKey
+                      ? 'Opening checkout…'
+                      : user
+                        ? `Choose ${plan.name}`
+                        : 'Get Started'}
+                  </motion.button>
                 )}
               </motion.div>
             ))}

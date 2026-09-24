@@ -9,6 +9,8 @@ import { listDocuments } from '../lib/documents'
 import { listConversations, getUsage } from '../lib/conversations'
 import { limitForPlan } from '../../shared/plans'
 import { exportAllData } from '../lib/exportData'
+import { openBillingPortal } from '../lib/billing'
+import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import './Dashboard.css'
 
@@ -22,28 +24,58 @@ const Dashboard = () => {
   const [conversationsLoading, setConversationsLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
   const [used, setUsed] = useState(null)
+  const [openingPortal, setOpeningPortal] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const justPaid = searchParams.get('checkout') === 'success'
 
   useEffect(() => {
     if (!user) return
     let active = true
+    let timer
 
     // Doubles as an end-to-end check that auth, RLS, and the profiles trigger
     // are all wired up: this only returns a row for the signed-in user.
-    supabase
-      .from('profiles')
-      .select('full_name, email, plan, created_at')
-      .eq('id', user.id)
-      .single()
-      .then(({ data, error }) => {
-        if (!active) return
-        if (error) setLoadError(error.message)
-        else setProfile(data)
-      })
+    const load = () =>
+      supabase
+        .from('profiles')
+        .select('full_name, email, plan, created_at, subscription_status, current_period_end')
+        .eq('id', user.id)
+        .single()
+
+    // Returning from Stripe, the plan is changed by the webhook, not the redirect,
+    // and the webhook can land a moment after the student does. Poll briefly
+    // rather than showing them the old plan and implying the payment failed.
+    const poll = async (attempt = 0) => {
+      const { data, error } = await load()
+      if (!active) return
+      if (error) {
+        setLoadError(error.message)
+        return
+      }
+      setProfile(data)
+
+      const upgraded = data.plan !== 'free'
+      if (justPaid && !upgraded && attempt < 8) {
+        timer = setTimeout(() => poll(attempt + 1), 1500)
+      }
+    }
+
+    poll()
 
     return () => {
       active = false
+      clearTimeout(timer)
     }
-  }, [user])
+  }, [user, justPaid])
+
+  const handleManageBilling = async () => {
+    setLoadError('')
+    setOpeningPortal(true)
+    const { error } = await openBillingPortal()
+    // openBillingPortal navigates away on success; reaching here means it failed.
+    setOpeningPortal(false)
+    if (error) setLoadError(error)
+  }
 
   const refreshDocuments = useCallback(async () => {
     const { data, error } = await listDocuments()
@@ -99,15 +131,57 @@ const Dashboard = () => {
               </span>
             )}
           </p>
-          <button
-            type="button"
-            className="dashboard-export"
-            onClick={handleExport}
-            disabled={exporting}
-          >
-            {exporting ? 'Preparing export…' : 'Export my data'}
-          </button>
+          {profile?.current_period_end && profile.plan !== 'free' && (
+            <p className="dashboard-renewal">
+              {profile.subscription_status === 'past_due'
+                ? 'Your last payment failed — update your card to keep your plan.'
+                : `Renews ${new Date(profile.current_period_end).toLocaleDateString(undefined, {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}.`}
+            </p>
+          )}
+          <div className="dashboard-actions">
+            {profile?.subscription_status ? (
+              <button
+                type="button"
+                className="dashboard-export"
+                onClick={handleManageBilling}
+                disabled={openingPortal}
+              >
+                {openingPortal ? 'Opening billing…' : 'Manage billing'}
+              </button>
+            ) : (
+              <Link to="/pricing" className="dashboard-export dashboard-upgrade">
+                Upgrade
+              </Link>
+            )}
+            <button
+              type="button"
+              className="dashboard-export"
+              onClick={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? 'Preparing export…' : 'Export my data'}
+            </button>
+          </div>
         </motion.header>
+
+        {justPaid && (
+          <div className="dashboard-notice">
+            {profile && profile.plan !== 'free' ? (
+              <>
+                You&apos;re on the {profile.plan} plan — thanks for subscribing.{' '}
+                <button type="button" className="notice-dismiss" onClick={() => setSearchParams({})}>
+                  Dismiss
+                </button>
+              </>
+            ) : (
+              'Payment received — confirming your plan with Stripe…'
+            )}
+          </div>
+        )}
 
         {loadError && <div className="dashboard-error">{loadError}</div>}
 

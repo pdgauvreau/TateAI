@@ -110,3 +110,48 @@
 .dashboard-usage {
   color: var(--dark-gray-4);
 }
+
+.dashboard-renewal {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--dark-gray-4);
+}
+
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.dashboard-actions .dashboard-export {
+  margin-top: 0;
+}
+
+.dashboard-upgrade {
+  display: inline-block;
+  text-decoration: none;
+  border-color: var(--green-primary);
+  color: var(--green-dark);
+}
+
+.dashboard-notice {
+  margin-bottom: 2rem;
+  padding: 0.85rem 1.1rem;
+  background: var(--green-lighter);
+  border-left: 3px solid var(--green-primary);
+  color: var(--green-darker);
+  font-size: 0.92rem;
+}
+
+.notice-dismiss {
+  margin-left: 0.5rem;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
