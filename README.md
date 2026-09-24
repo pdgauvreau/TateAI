@@ -161,6 +161,28 @@ student deleting a conversation would erase the record of what it cost. The tabl
 has select and insert policies but deliberately **no update or delete policy**, so
 a user can only ever add to their own usage, never remove it.
 
+## Stripe configuration (lives in Stripe, not this repo)
+
+These were set up via the API in the sandbox and **must be recreated in live
+mode** before real billing — nothing here is version-controlled:
+
+- **Products and prices**: TATE AI Student ($18/mo) and TATE AI Pro ($26/mo),
+  with lookup keys `tateai_student_monthly` and `tateai_pro_monthly`. The code
+  resolves prices by lookup key, so live prices need the same keys and no code
+  change.
+- **Customer portal**: invoice history, card updates, email updates, plan
+  switching between the two prices with proration, cancel at period end, and
+  **price decreases scheduled at period end** (`decreasing_item_amount`) so a
+  downgrade keeps the current plan until renewal. Upgrades apply immediately.
+- **Webhook endpoint** at `/api/billing/webhook` for: `checkout.session.completed`,
+  `checkout.session.async_payment_succeeded`, `customer.subscription.created`,
+  `.updated`, `.deleted`, `.paused`, `.resumed`, `invoice.paid`,
+  `invoice.payment_failed`. Its signing secret goes in `STRIPE_WEBHOOK_SECRET`.
+
+When adding secrets with `vercel env add` on Windows, pipe from bash or type at
+the prompt — piping from Windows PowerShell prepends an invisible byte-order
+mark, which broke webhook signature checks once already.
+
 ## Voice
 
 Uses the browser's built-in Web Speech API — no extra vendor, key, or per-minute
