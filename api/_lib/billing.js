@@ -89,7 +89,13 @@ export const deriveBillingState = (subscriptions) => {
   const current = ordered.find((s) => ACCESS_STATUSES.has(s.status)) ?? ordered[0]
 
   if (!current) {
-    return { plan: 'free', stripe_subscription_id: null, subscription_status: null, current_period_end: null }
+    return {
+      plan: 'free',
+      stripe_subscription_id: null,
+      subscription_status: null,
+      current_period_end: null,
+      cancel_at: null,
+    }
   }
 
   const item = current.items?.data?.[0]
@@ -98,11 +104,22 @@ export const deriveBillingState = (subscriptions) => {
   // subscription-level field no longer exists.
   const periodEnd = item?.current_period_end
 
+  const hasAccess = ACCESS_STATUSES.has(current.status)
+
+  // A scheduled end. Newer API versions set cancel_at (the customer portal does
+  // this) and leave cancel_at_period_end false, so reading only the older flag
+  // would miss portal cancellations entirely. Only meaningful while access
+  // remains — once the subscription has actually ended there is nothing pending.
+  const cancelAt = hasAccess
+    ? (current.cancel_at ?? (current.cancel_at_period_end ? periodEnd : null))
+    : null
+
   return {
-    plan: ACCESS_STATUSES.has(current.status) && paidPlan ? paidPlan : 'free',
+    plan: hasAccess && paidPlan ? paidPlan : 'free',
     stripe_subscription_id: current.id,
     subscription_status: current.status,
     current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+    cancel_at: cancelAt ? new Date(cancelAt * 1000).toISOString() : null,
   }
 }
 

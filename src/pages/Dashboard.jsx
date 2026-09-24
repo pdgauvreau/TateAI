@@ -14,6 +14,9 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import './Dashboard.css'
 
+const formatDate = (iso) =>
+  new Date(iso).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+
 const Dashboard = () => {
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
@@ -39,7 +42,7 @@ const Dashboard = () => {
     const load = () =>
       supabase
         .from('profiles')
-        .select('full_name, email, plan, created_at, subscription_status, current_period_end')
+        .select('full_name, email, plan, created_at, subscription_status, current_period_end, cancel_at')
         .eq('id', user.id)
         .single()
 
@@ -139,15 +142,17 @@ const Dashboard = () => {
             <p className="dashboard-renewal">
               {profile.subscription_status === 'past_due'
                 ? 'Your last payment failed — update your card to keep your plan.'
-                : `Renews ${new Date(profile.current_period_end).toLocaleDateString(undefined, {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}.`}
+                : profile.cancel_at
+                  ? `Cancelled — your ${profile.plan} plan stays active until ${formatDate(
+                      profile.cancel_at
+                    )}. You won't be charged again.`
+                  : `Renews ${formatDate(profile.current_period_end)}.`}
             </p>
           )}
           <div className="dashboard-actions">
-            {profile?.subscription_status ? (
+            {/* Paid and still active: manage it. Free, or a plan that has ended:
+                offer to subscribe (checkout accepts lapsed customers). */}
+            {profile?.subscription_status && profile.plan !== 'free' ? (
               <button
                 type="button"
                 className="dashboard-export"
