@@ -11,7 +11,7 @@ const Pricing = () => {
   const plans = [
     {
       name: 'Student',
-      price: '$9',
+      price: '$18',
       period: '/month',
       description: 'Perfect for individual students looking to improve their study habits',
       features: [
@@ -25,7 +25,7 @@ const Pricing = () => {
     },
     {
       name: 'Pro',
-      price: '$19',
+      price: '$26',
       period: '/month',
       description: 'For serious students who want advanced features and priority support',
       features: [

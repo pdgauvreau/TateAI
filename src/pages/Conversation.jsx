@@ -9,7 +9,10 @@ import {
 } from '../lib/conversations'
 import {
   cancelSpeech,
+  listVoices,
+  onVoicesChanged,
   recognitionSupported,
+  setPreferredVoice,
   speak,
   splitSentences,
   synthesisSupported,
@@ -18,6 +21,7 @@ import {
 import './Conversation.css'
 
 const SPEAK_PREF_KEY = 'tateai:speak-replies'
+const VOICE_PREF_KEY = 'tateai:voice-uri'
 
 const Conversation = () => {
   const { id } = useParams()
@@ -38,6 +42,15 @@ const Conversation = () => {
       return localStorage.getItem(SPEAK_PREF_KEY) === '1'
     } catch {
       return false
+    }
+  })
+
+  const [voices, setVoices] = useState([])
+  const [voiceURI, setVoiceURI] = useState(() => {
+    try {
+      return localStorage.getItem(VOICE_PREF_KEY) ?? ''
+    } catch {
+      return ''
     }
   })
 
@@ -72,6 +85,33 @@ const Conversation = () => {
       cancelSpeech()
     }
   }, [id])
+
+  // Voices arrive asynchronously, and in some browsers only after the first
+  // getVoices() call, so read once and then again on the change event.
+  useEffect(() => {
+    if (!synthesisSupported) return
+    const load = () => setVoices(listVoices())
+    load()
+    return onVoicesChanged(load)
+  }, [])
+
+  useEffect(() => {
+    setPreferredVoice(voiceURI)
+    try {
+      if (voiceURI) localStorage.setItem(VOICE_PREF_KEY, voiceURI)
+      else localStorage.removeItem(VOICE_PREF_KEY)
+    } catch {
+      /* private window — selection still applies for this session */
+    }
+  }, [voiceURI])
+
+  const handleVoiceChange = (nextURI) => {
+    setVoiceURI(nextURI)
+    setPreferredVoice(nextURI)
+    // Speak a sample so the choice can be judged by ear rather than by name.
+    cancelSpeech()
+    speak('Right — walk me through that idea in your own words.')
+  }
 
   useEffect(() => {
     try {
@@ -189,14 +229,33 @@ const Conversation = () => {
             <p className="conversation-docs">Using: {documents.join(', ')}</p>
           )}
           {synthesisSupported && (
-            <label className="speak-toggle">
-              <input
-                type="checkbox"
-                checked={speakReplies}
-                onChange={(e) => setSpeakReplies(e.target.checked)}
-              />
-              <span>Read replies aloud</span>
-            </label>
+            <div className="voice-controls">
+              <label className="speak-toggle">
+                <input
+                  type="checkbox"
+                  checked={speakReplies}
+                  onChange={(e) => setSpeakReplies(e.target.checked)}
+                />
+                <span>Read replies aloud</span>
+              </label>
+
+              {speakReplies && voices.length > 0 && (
+                <label className="voice-picker">
+                  <span className="voice-picker-label">Voice</span>
+                  <select
+                    value={voiceURI}
+                    onChange={(e) => handleVoiceChange(e.target.value)}
+                  >
+                    <option value="">Browser default</option>
+                    {voices.map((voice) => (
+                      <option key={voice.voiceURI} value={voice.voiceURI}>
+                        {voice.name} ({voice.lang})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
           )}
         </header>
 

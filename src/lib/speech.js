@@ -80,6 +80,47 @@ export const startDictation = ({ onResult, onError, onEnd, lang = 'en-US' }) => 
   }
 }
 
+/**
+ * Available voices, best-first for this app.
+ *
+ * getVoices() is empty on first call in most browsers — the list arrives
+ * asynchronously — so callers must also listen via onVoicesChanged.
+ */
+export const listVoices = () => {
+  if (!synthesisSupported) return []
+  const uiLang = (navigator.language ?? 'en-US').toLowerCase()
+  const base = uiLang.split('-')[0]
+
+  return window.speechSynthesis
+    .getVoices()
+    .slice()
+    .sort((a, b) => {
+      // Exact locale match first, then same language, then everything else.
+      const rank = (v) => {
+        const lang = (v.lang ?? '').toLowerCase()
+        if (lang === uiLang) return 0
+        if (lang.startsWith(base)) return 1
+        return 2
+      }
+      return rank(a) - rank(b) || a.name.localeCompare(b.name)
+    })
+}
+
+/** Voices populate asynchronously; returns an unsubscribe function. */
+export const onVoicesChanged = (callback) => {
+  if (!synthesisSupported) return () => {}
+  window.speechSynthesis.addEventListener('voiceschanged', callback)
+  return () => window.speechSynthesis.removeEventListener('voiceschanged', callback)
+}
+
+// Module-level so the streaming callback does not have to thread it through on
+// every sentence.
+let preferredVoiceURI = null
+
+export const setPreferredVoice = (voiceURI) => {
+  preferredVoiceURI = voiceURI || null
+}
+
 export const cancelSpeech = () => {
   if (synthesisSupported) window.speechSynthesis.cancel()
 }
@@ -97,6 +138,16 @@ export const speak = (text) => {
   const utterance = new SpeechSynthesisUtterance(text)
   utterance.rate = 1.02
   utterance.pitch = 1
+
+  if (preferredVoiceURI) {
+    const match = window.speechSynthesis
+      .getVoices()
+      .find((v) => v.voiceURI === preferredVoiceURI)
+    // Fall back to the browser default if a remembered voice is no longer
+    // installed, rather than failing silently.
+    if (match) utterance.voice = match
+  }
+
   window.speechSynthesis.speak(utterance)
 }
 

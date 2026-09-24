@@ -192,3 +192,39 @@
     animation: none;
   }
 }
+
+.voice-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+.voice-controls .speak-toggle {
+  margin-top: 0;
+}
+
+.voice-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.voice-picker select {
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  max-width: 16rem;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.voice-picker select:focus-visible {
+  outline: 2px solid var(--green-primary);
+  outline-offset: 1px;
+}
