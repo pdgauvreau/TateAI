@@ -7,7 +7,7 @@ import React from 'react'
 export const EFFECTIVE_DATE = 'September 9, 2026'
 export const CONTACT_EMAIL = 'support@tateai.app'
 export const OPERATOR = 'Paul Gauvreau'
-export const STATE = 'Utah'
+export const STATE = 'California'
 
 export const privacy = [
   {
