@@ -1,131 +1,187 @@
-.features {
-  padding: 8rem 2rem;
-  position: relative;
-  background: transparent;
-  z-index: 1;
-}
+/* ------------------------------------------------------------------- bento --- */
 
-.features-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.features-header {
-  text-align: center;
-  margin-bottom: 4rem;
-}
-
-.section-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--green-primary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-family: 'Courier New', monospace;
-  margin-bottom: 1rem;
-}
-
-.features-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.features-subtitle {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.features-grid {
+.bento {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
-  margin-top: 4rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.1rem;
 }
 
-.feature-card {
-  background: var(--white);
-  border: 3px solid var(--border-color);
-  padding: 2.5rem;
-  transition: all 0.3s ease;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.bento-card {
+  padding: 1.6rem;
+  overflow: hidden;
 }
 
-.feature-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--green-primary);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+/* The wide cell takes two columns and two rows, which is what leaves room for
+   the diagram underneath its copy. */
+.bento-card.is-wide {
+  grid-column: span 2;
+  grid-row: span 2;
 }
 
-.feature-card:hover::before {
-  opacity: 1;
+/* .tilt-body is the real content column (see motion.css), so the card's own
+   spacing is set on it rather than on the card. */
+.bento-card .tilt-body {
+  gap: 0.6rem;
 }
 
-.feature-card:hover {
-  border-color: var(--green-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.bento-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 0.65rem;
+  border-radius: var(--r-md);
+  color: var(--brand-text);
+  background: var(--brand-soft);
+  border: 1px solid var(--hairline);
+  transition: transform var(--t-base) var(--ease-spring),
+    background var(--t-base) ease, color var(--t-base) ease;
 }
 
-.feature-icon {
-  width: 70px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  border: 2px solid var(--green-primary);
-  background: var(--green-lighter);
+/* The icon is the only thing that reacts to the card's own hover state, so the
+   hover reads as one gesture instead of six competing ones. */
+.tilt.is-hot .bento-icon {
+  transform: translateY(-2px) scale(1.06);
+  color: #03130d;
+  background: linear-gradient(140deg, var(--brand-bright), var(--brand));
 }
 
-.icon-emoji {
-  font-size: 2rem;
+.bento-tag {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 
-.feature-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
+.bento-title {
+  font-size: 1.12rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 
-.feature-description {
+.bento-card.is-wide .bento-title {
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+}
+
+.bento-body {
+  font-size: 0.92rem;
+  line-height: 1.62;
+  color: var(--text-dim);
+}
+
+.bento-card.is-wide .bento-body {
   font-size: 1rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
+  max-width: 32rem;
 }
 
-@media (max-width: 768px) {
-  .features {
-    padding: 6rem 1.5rem;
+/* ----------------------------------------------------------------- diagram --- */
+
+.diagram {
+  margin-top: auto;
+  padding-top: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.diagram-docs {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-end;
+}
+
+.diagram-doc {
+  width: 62px;
+  height: 80px;
+  padding: 0.55rem 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-sm);
+}
+
+/* The middle document sits proud of the other two, so the fan has a front. */
+.diagram-doc:nth-child(2) {
+  height: 92px;
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.diagram-line {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--hairline-strong);
+  transform-origin: 0 50%;
+}
+
+.diagram-doc:nth-child(2) .diagram-line {
+  background: var(--brand);
+}
+
+/* The link from documents to output. A gradient rather than a solid rule, so it
+   appears to emerge from the stack. */
+.diagram-feed {
+  display: block;
+  width: 1px;
+  height: 26px;
+  background: linear-gradient(180deg, var(--brand-bright), transparent);
+}
+
+.diagram-out {
+  width: 100%;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.diagram-term {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  padding: 0 0.8rem;
+  white-space: nowrap;
+}
+
+.diagram-term::before {
+  content: '·';
+  margin-right: 0.8rem;
+  color: var(--brand);
+}
+
+/* ------------------------------------------------------------------ narrow --- */
+
+@media (max-width: 900px) {
+  .bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .features-title {
-    font-size: 2.5rem;
+  .bento-card.is-wide {
+    grid-column: span 2;
+    grid-row: auto;
   }
+}
 
-  .features-subtitle {
-    font-size: 1.1rem;
-  }
-
-  .features-grid {
+@media (max-width: 600px) {
+  .bento {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
   }
 
-  .feature-card {
-    padding: 2rem;
+  .bento-card.is-wide {
+    grid-column: span 1;
+  }
+
+  .diagram-doc {
+    width: 52px;
+    height: 68px;
+  }
+
+  .diagram-doc:nth-child(2) {
+    height: 78px;
   }
 }
-

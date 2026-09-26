@@ -1,11 +1,25 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import DotBackground from './DotBackground'
+import Reveal, { RevealGroup } from './motion/Reveal'
+import SplitText from './motion/SplitText'
+import { Magnetic, TiltCard } from './motion/Interactive'
 import { useAuth } from '../context/AuthContext'
 import { startCheckout } from '../lib/billing'
+import { ease, liftIn, spring } from '../motion/tokens'
+import { PLAN_DISPLAY, PLAN_LIMITS } from '../../shared/plans'
 import './Pricing.css'
 
+/**
+ * Plans, prices, and the checkout hand-off.
+ *
+ * Prices and limits are read from shared/plans.js rather than written here, so
+ * the page cannot claim a number the API does not enforce. The billing behaviour
+ * is unchanged from before the redesign: signed-out visitors are sent to signup,
+ * and a failed checkout says why and offers the dashboard when the reason is that
+ * a subscription already exists.
+ */
 const Pricing = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -20,8 +34,7 @@ const Pricing = () => {
     setCheckoutError('')
     setPointToManage(false)
 
-    // Signed-out visitors create an account first; checkout needs a user to
-    // attach the subscription to.
+    // Checkout needs a user to attach the subscription to.
     if (!user) {
       navigate('/signup')
       return
@@ -38,122 +51,132 @@ const Pricing = () => {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
+
   const plans = [
+    {
+      name: 'Free',
+      planKey: null,
+      price: null,
+      priceLabel: '$0',
+      cadence: 'forever',
+      description: 'Enough to find out whether talking through your notes suits you.',
+      features: [
+        `${PLAN_LIMITS.free} messages a day`,
+        'PDF upload up to 25 MB a file',
+        'Voice in and voice out',
+        'Full data export',
+      ],
+      cta: 'Create an account',
+    },
     {
       name: 'Student',
       planKey: 'student',
-      price: '$18',
-      period: '/month',
-      description: 'For regular study sessions through the semester',
+      price: PLAN_DISPLAY.student.price,
+      cadence: '/month',
+      description: 'For regular sessions right through the semester.',
       features: [
-        '250 messages a day — 10× the free plan',
-        'Upload lecture slides, assignments, and practice exams',
-        'Talk it through out loud with voice',
-        'Export all your data any time',
-        'Cancel any time'
+        `${PLAN_LIMITS.student} messages a day — ${Math.round(
+          PLAN_LIMITS.student / PLAN_LIMITS.free
+        )}× the free plan`,
+        'Everything in Free',
+        'Cancel any time, keeps working until renewal',
       ],
-      popular: false
+      cta: 'Choose Student',
     },
     {
       name: 'Pro',
       planKey: 'pro',
-      price: '$26',
-      period: '/month',
-      description: 'For heavy use — exam season, several courses at once',
+      price: PLAN_DISPLAY.pro.price,
+      cadence: '/month',
+      description: 'Exam season, several courses at once, long sittings.',
       features: [
-        '1,000 messages a day — 4× Student',
+        `${PLAN_LIMITS.pro} messages a day — ${Math.round(
+          PLAN_LIMITS.pro / PLAN_LIMITS.student
+        )}× Student`,
         'Everything in Student',
-        'Cancel any time'
+        'Upgrades apply immediately, downgrades at renewal',
       ],
-      popular: true
+      popular: true,
+      cta: 'Choose Pro',
     },
     {
       name: 'Institution',
-      price: 'Custom',
-      period: '',
-      description: 'Tailored solutions for schools, universities, and educational institutions',
+      planKey: null,
+      price: null,
+      priceLabel: 'Custom',
+      cadence: '',
+      description: 'Departments, cohorts, and anyone who needs an invoice.',
       features: [
-        'Bulk student accounts',
-        'Admin dashboard',
-        'Usage analytics',
-        'Custom integrations',
-        'Dedicated support',
-        'SLA guarantees',
-        'Training & onboarding'
+        'Unlimited messages',
+        'Bulk accounts and admin view',
+        'Usage reporting',
+        'Onboarding and a named contact',
       ],
-      popular: false
-    }
+      cta: 'Contact sales',
+      contact: true,
+    },
   ]
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6
-      }
-    }
-  }
-
   return (
-    <div className="pricing-page">
+    <div className="page pricing">
       <DotBackground />
-      <section className="pricing-hero">
-        <div className="pricing-hero-content">
-          <motion.div
-            className="pricing-label"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            // PRICING
-          </motion.div>
-          <motion.h1
-            className="pricing-title"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            Simple, Transparent Pricing
-          </motion.h1>
-          <motion.p
-            className="pricing-subtitle"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            Choose the plan that fits your learning needs. All plans include our core conversational learning features.
-          </motion.p>
-          <motion.p
-            className="pricing-notice"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            TATE AI is in early access. Plans are not purchasable yet — creating an account is
-            free, and these prices are what we intend to charge when billing opens.
-          </motion.p>
-        </div>
+
+      <section className="pricing-top shell">
+        <Reveal variant="in">
+          <span className="eyebrow">Pricing</span>
+        </Reveal>
+
+        <h1 className="pricing-title">
+          <SplitText trigger="mount" delay={0.2}>
+            Cheap, and mostly
+          </SplitText>{' '}
+          <SplitText className="serif grad-text" by="word" trigger="mount" delay={0.5}>
+            free.
+          </SplitText>
+        </h1>
+
+        <Reveal variant="up" delay={0.7}>
+          <p className="pricing-sub">
+            The free plan is a real plan, not a trial. Paid tiers exist for people
+            who hit the daily cap, which mostly happens in the last week before an
+            exam.
+          </p>
+        </Reveal>
+
+        <Reveal variant="up" delay={0.85}>
+          <p className="pricing-flag">
+            <span className="flag-dot" />
+            Early access — billing is not switched on yet. Creating an account is
+            free, and these are the prices we intend to charge when it opens.
+          </p>
+        </Reveal>
       </section>
 
-      <section className="pricing-plans">
-        <div className="pricing-container">
+      <section className="shell">
+        {/* Status strips animate in and out rather than appearing, so a returning
+            Stripe redirect does not slam a red box into the layout. */}
+        <AnimatePresence>
           {cancelled && !checkoutError && (
-            <div className="pricing-status">Checkout cancelled — you haven&apos;t been charged.</div>
+            <motion.div
+              className="note pricing-note"
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.35, ease: ease.out }}
+            >
+              Checkout cancelled — you haven’t been charged.
+            </motion.div>
           )}
+
           {checkoutError && (
-            <div className="pricing-status pricing-status-error" role="alert">
+            <motion.div
+              className="note note-error pricing-note"
+              role="alert"
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.35, ease: ease.out }}
+            >
               {checkoutError}
               {pointToManage && (
                 <>
@@ -161,112 +184,242 @@ const Pricing = () => {
                   <Link to="/dashboard">Go to your dashboard</Link>
                 </>
               )}
-            </div>
+            </motion.div>
           )}
-          <motion.div
-            className="plans-grid"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {plans.map((plan, index) => (
-              <motion.div
-                key={index}
-                className={`pricing-card ${plan.popular ? 'popular' : ''}`}
-                variants={itemVariants}
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.3 }}
-              >
-                {plan.popular && (
-                  <div className="popular-badge">Most Popular</div>
-                )}
-                <div className="plan-label">{plan.name}</div>
-                <div className="plan-price">
-                  <span className="price-amount">{plan.price}</span>
-                  {plan.period && <span className="price-period">{plan.period}</span>}
-                </div>
-                <p className="plan-description">{plan.description}</p>
-                <ul className="plan-features">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx}>
-                      <span className="feature-check">✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                {plan.name === 'Institution' ? (
-                  <motion.a
-                    href="mailto:sales@tateai.app?subject=Institution%20plan%20enquiry"
-                    className={`plan-button ${plan.popular ? 'button-primary' : 'button-secondary'}`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+        </AnimatePresence>
+
+        <RevealGroup className="plans" each={0.09}>
+          {plans.map((plan) => (
+            <TiltCard
+              key={plan.name}
+              className={`plan panel rim ${plan.popular ? 'is-popular' : ''}`}
+              variants={liftIn}
+              max={5}
+              lift={-8}
+            >
+              {plan.popular && (
+                <>
+                  {/* A gradient edge that travels round the recommended card.
+                      Masked to a 1px ring so it lights the border, not the fill. */}
+                  <span className="plan-halo" aria-hidden="true" />
+                  <motion.span
+                    className="plan-flag"
+                    initial={{ opacity: 0, y: -8, scale: 0.8 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ ...spring.pop, delay: 0.35 }}
                   >
-                    Contact Sales
-                  </motion.a>
+                    Most picked
+                  </motion.span>
+                </>
+              )}
+
+              <span className="plan-name">{plan.name}</span>
+
+              <div className="plan-price">
+                <span className="plan-amount">
+                  {plan.price != null ? `$${plan.price}` : plan.priceLabel}
+                </span>
+                {plan.cadence && <span className="plan-cadence">{plan.cadence}</span>}
+              </div>
+
+              <p className="plan-desc">{plan.description}</p>
+
+              <ul className="plan-features">
+                {plan.features.map((f) => (
+                  <li key={f}>
+                    <motion.span
+                      className="plan-tick"
+                      aria-hidden="true"
+                      variants={{
+                        hidden: { scale: 0, rotate: -40 },
+                        show: { scale: 1, rotate: 0 },
+                      }}
+                      transition={spring.pop}
+                    >
+                      <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 8.5l3.5 3.5L13 5" />
+                      </svg>
+                    </motion.span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="plan-action">
+                {plan.contact ? (
+                  <Magnetic strength={0.14}>
+                    <motion.a
+                      href="mailto:sales@tateai.app?subject=Institution%20plan%20enquiry"
+                      className="btn btn-ghost plan-btn"
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={spring.snap}
+                    >
+                      {plan.cta}
+                    </motion.a>
+                  </Magnetic>
+                ) : plan.planKey === null ? (
+                  <Magnetic strength={0.14}>
+                    <Link to="/signup">
+                      <motion.span
+                        className="btn btn-ghost plan-btn"
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        transition={spring.snap}
+                      >
+                        {plan.cta}
+                      </motion.span>
+                    </Link>
+                  </Magnetic>
                 ) : (
-                  <motion.button
-                    type="button"
-                    className={`plan-button ${plan.popular ? 'button-primary' : 'button-secondary'}`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => choosePlan(plan.planKey)}
-                    disabled={pendingPlan !== null}
-                  >
-                    {pendingPlan === plan.planKey
-                      ? 'Opening checkout…'
-                      : user
-                        ? `Choose ${plan.name}`
-                        : 'Get Started'}
-                  </motion.button>
+                  <Magnetic strength={0.14}>
+                    <motion.button
+                      type="button"
+                      className={`btn plan-btn ${
+                        plan.popular ? 'btn-primary' : 'btn-ghost'
+                      }`}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={spring.snap}
+                      onClick={() => choosePlan(plan.planKey)}
+                      disabled={pendingPlan !== null}
+                    >
+                      {/* The label swaps in place while checkout opens, rather
+                          than the button resizing under the cursor. */}
+                      <AnimatePresence mode="wait" initial={false}>
+                        <motion.span
+                          key={pendingPlan === plan.planKey ? 'pending' : 'idle'}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          transition={{ duration: 0.18 }}
+                        >
+                          {pendingPlan === plan.planKey
+                            ? 'Opening checkout…'
+                            : user
+                              ? plan.cta
+                              : 'Get started'}
+                        </motion.span>
+                      </AnimatePresence>
+                    </motion.button>
+                  </Magnetic>
                 )}
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
+              </div>
+            </TiltCard>
+          ))}
+        </RevealGroup>
       </section>
 
-      <section className="pricing-faq">
-        <div className="pricing-container">
-          <motion.div
-            className="faq-header"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="section-label">// FAQ</div>
-            <h2 className="faq-title">Frequently Asked Questions</h2>
-          </motion.div>
-
-          <motion.div
-            className="faq-list"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <div className="faq-item">
-              <h3 className="faq-question">What does it cost right now?</h3>
-              <p className="faq-answer">Nothing. TATE AI is in early access and billing is not switched on yet. We will tell you well before that changes.</p>
-            </div>
-            <div className="faq-item">
-              <h3 className="faq-question">What can it read?</h3>
-              <p className="faq-answer">PDFs, up to 25 MB each — lecture slides, assignment prompts, and practice exams. Scanned documents with no selectable text cannot be read yet.</p>
-            </div>
-            <div className="faq-item">
-              <h3 className="faq-question">Can I get my data out?</h3>
-              <p className="faq-answer">Yes. Export everything we hold — your profile, documents, and full conversation history — from your dashboard at any time.</p>
-            </div>
-            <div className="faq-item">
-              <h3 className="faq-question">Will it do my homework?</h3>
-              <p className="faq-answer">No, by design. It asks questions and gives hints rather than finished answers. You are responsible for following your institution's rules on AI use.</p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      <Faq />
     </div>
   )
 }
 
-export default Pricing
+const faqs = [
+  {
+    q: 'What does it cost right now?',
+    a: 'Nothing. TATE AI is in early access and billing is not switched on. You will hear from us well before that changes.',
+  },
+  {
+    q: 'What can it read?',
+    a: 'PDFs up to 25 MB each — lecture slides, assignment briefs, practice exams. Scanned pages with no selectable text cannot be read yet, because there is no OCR step.',
+  },
+  {
+    q: 'How much of a long document does it actually see?',
+    a: 'A fixed character budget per conversation, shared evenly across the documents you attach so one long file cannot crowd out the others. That is fine for a set of slides and not enough for a textbook — long documents get truncated.',
+  },
+  {
+    q: 'Can I get my data out?',
+    a: 'Yes, from your dashboard, at any time: your profile, your documents, and every conversation, as one file.',
+  },
+  {
+    q: 'Will it do my homework?',
+    a: 'No, by design — it asks questions and gives hints rather than finished answers. Following your institution’s rules on AI use is still your responsibility.',
+  },
+  {
+    q: 'What happens if I cancel?',
+    a: 'Your plan keeps working until the end of the period you have paid for, then drops to Free. Nothing is deleted.',
+  },
+]
 
+/**
+ * The FAQ, as a proper accordion.
+ *
+ * `height: auto` is animatable by Framer, so the panel grows to fit its content
+ * without anybody measuring anything. One item open at a time keeps the list
+ * short enough to scan, and the chevron rotates rather than swapping glyphs.
+ */
+const Faq = () => {
+  const [open, setOpen] = useState(0)
+
+  return (
+    <section className="shell pricing-faq">
+      <div className="section-head">
+        <Reveal variant="in">
+          <span className="eyebrow">Questions</span>
+        </Reveal>
+        <SplitText as="h2" by="word" className="section-title">
+          The ones people actually ask
+        </SplitText>
+      </div>
+
+      <RevealGroup className="faq" each={0.06}>
+        {faqs.map((item, i) => {
+          const isOpen = open === i
+          return (
+            <motion.div
+              className={`faq-item ${isOpen ? 'is-open' : ''}`}
+              key={item.q}
+              variants={{
+                hidden: { opacity: 0, y: 16 },
+                show: { opacity: 1, y: 0 },
+              }}
+            >
+              <button
+                type="button"
+                className="faq-q"
+                aria-expanded={isOpen}
+                onClick={() => setOpen(isOpen ? -1 : i)}
+              >
+                <span>{item.q}</span>
+                <motion.span
+                  className="faq-chev"
+                  animate={{ rotate: isOpen ? 45 : 0 }}
+                  transition={spring.snap}
+                  aria-hidden="true"
+                >
+                  {/* A plus that rotates into an x — one glyph, two meanings. */}
+                  <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+                    <path d="M8 3v10M3 8h10" />
+                  </svg>
+                </motion.span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    className="faq-a-wrap"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{
+                      height: { duration: 0.38, ease: ease.out },
+                      // Opacity trails the height slightly so text does not appear
+                      // before there is room for it.
+                      opacity: { duration: 0.25, delay: isOpen ? 0.1 : 0 },
+                    }}
+                  >
+                    <p className="faq-a">{item.a}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )
+        })}
+      </RevealGroup>
+    </section>
+  )
+}
+
+export default Pricing

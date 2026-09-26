@@ -1,246 +1,511 @@
 .hero {
+  position: relative;
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  padding: calc(var(--nav-h) + 4rem) 0 6rem;
   overflow: hidden;
-  padding: 8rem 2rem 4rem;
-  background: transparent;
-  z-index: 1;
 }
 
-.hero-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.gradient-orb {
-  position: absolute;
-  filter: blur(60px);
-  opacity: 0.15;
-  animation: float 20s ease-in-out infinite;
-}
-
-.orb-1 {
-  width: 500px;
-  height: 500px;
-  background: var(--green-primary);
-  top: -200px;
-  left: -200px;
-  animation-delay: 0s;
-}
-
-.orb-2 {
-  width: 400px;
-  height: 400px;
-  background: var(--green-dark);
-  bottom: -150px;
-  right: -150px;
-  animation-delay: 5s;
-}
-
-.orb-3 {
-  width: 300px;
-  height: 300px;
-  background: var(--green-primary);
-  top: 50%;
-  right: 10%;
-  animation-delay: 10s;
-}
-
-.hero-content {
-  max-width: 1200px;
-  width: 100%;
+.hero-inner {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
-  position: relative;
-  z-index: 1;
+  /* The scroll-linked recede transforms this element, and without an explicit
+     origin it would shrink toward its centre and lift the text off the baseline
+     grid on the way out. */
+  transform-origin: 50% 0%;
 }
 
-.hero-text {
+/* -------------------------------------------------------------------- copy --- */
+
+.hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  align-items: flex-start;
+  gap: 1.6rem;
 }
 
-.hero-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--green-primary);
-  letter-spacing: 0.1em;
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.38rem 0.85rem 0.38rem 0.7rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  font-family: 'Courier New', monospace;
-  margin-bottom: 0.5rem;
+}
+
+.hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-bright);
+  box-shadow: 0 0 0 3px var(--glow-soft);
+  animation: pulse-dot 2.4s var(--ease-in-out-quart) infinite;
+}
+
+.eyebrow-text {
+  color: var(--brand-text);
+}
+
+.hero-badge-sep {
+  width: 1px;
+  height: 11px;
+  background: var(--hairline-strong);
+}
+
+.hero-badge-quiet {
+  color: var(--text-faint);
 }
 
 .hero-title {
-  font-size: 4.5rem;
-  font-weight: 800;
-  line-height: 1.1;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  letter-spacing: -0.02em;
+  /* Sized so "Learn by talking." breaks after "by" at most — the previous 5.4rem
+     ceiling put one word per line in a half-width column, which read as three
+     separate headlines. */
+  font-size: clamp(2.6rem, 5vw, 4.1rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 
-.hero-subtitle {
-  font-size: 1.3rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
-  max-width: 650px;
-  margin-bottom: 2rem;
-  font-weight: 400;
+.hero-title-em {
+  /* The serif is optically smaller at the same size, and its italic needs room
+     at the right edge or the terminal of the "g" is clipped by the word mask. */
+  font-size: 1.06em;
+  padding-right: 0.06em;
 }
 
-.hero-buttons {
+.hero-sub {
+  font-size: clamp(1.02rem, 1.45vw, 1.2rem);
+  line-height: 1.68;
+  color: var(--text-dim);
+  max-width: 34rem;
+}
+
+.hero-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
 }
 
-.btn-primary,
-.btn-secondary {
-  padding: 1rem 2rem;
-  font-size: 1rem;
+.hero-cta {
+  padding: 0.95rem 1.65rem;
+  font-size: 0.98rem;
+}
+
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 2.2rem;
+  margin-top: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--hairline);
+  width: 100%;
+  max-width: 34rem;
+}
+
+.hero-fact dt {
+  font-size: 0.94rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid;
+  letter-spacing: -0.015em;
+  color: var(--text);
 }
 
-.btn-primary {
-  background: var(--green-primary);
-  color: var(--white);
-  border-color: var(--green-primary);
+.hero-fact dd {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  margin-top: 0.1rem;
 }
 
-.btn-primary:hover {
-  background: var(--green-dark);
-  border-color: var(--green-dark);
+/* ------------------------------------------------------------------- stage --- */
+
+.hero-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 27rem;
+  /* Establishes the depth for the ring and chip layers. */
+  perspective: 1200px;
 }
 
-.btn-secondary {
-  background: transparent;
-  color: var(--text-primary);
-  border-color: var(--dark-gray);
+.stage-glow {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow-soft), transparent 62%);
+  filter: blur(44px);
+  animation: breathe 9s var(--ease-in-out-quart) infinite;
 }
 
-.btn-secondary:hover {
-  border-color: var(--green-primary);
-  color: var(--green-primary);
+.stage-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px dashed var(--hairline-strong);
+  pointer-events: none;
 }
 
-.hero-visual {
+.stage-ring-1 {
+  width: 118%;
+  aspect-ratio: 1;
+  /* Broken arc rather than a full circle, so the rotation is visible at all. A
+     complete dashed ring looks identical at every angle. */
+  border-color: var(--hairline-strong) transparent var(--hairline-strong) transparent;
+}
+
+.stage-ring-2 {
+  width: 92%;
+  aspect-ratio: 1;
+  border-style: solid;
+  border-color: transparent var(--hairline) transparent transparent;
+}
+
+/* --------------------------------------------------------------------- chat --- */
+
+.chat {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 27rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  background: color-mix(in srgb, var(--bg-elev) 88%, transparent);
+}
+
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+  .chat {
+    background: var(--bg-elev);
+  }
+}
+
+.chat-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  gap: 0.7rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
 }
 
-.ai-visualization {
-  width: 100%;
-  height: 400px;
-  position: relative;
+.chat-dots {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.chat-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--surface-3);
+}
+
+.chat-dots i:first-child {
+  background: var(--brand);
+}
+
+.chat-file {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  margin-right: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-live {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brand-text);
+  padding: 0.14rem 0.45rem;
+  border: 1px solid var(--brand);
+  border-radius: var(--r-pill);
+}
+
+.chat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.1rem;
+  /* Fixed height: the script grows and resets, and a panel that changes height
+     on every turn would pump the whole hero layout. */
+  height: 17.5rem;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--r-md);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.bubble-who {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+  opacity: 0.7;
+}
+
+.bubble-user {
+  align-self: flex-end;
+  background: linear-gradient(140deg, var(--brand), var(--brand-deep));
+  color: #f2fffa;
+  border-bottom-right-radius: 4px;
+}
+
+.bubble-ai {
+  align-self: flex-start;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  color: var(--text);
+  border-bottom-left-radius: 4px;
+}
+
+.bubble-text {
+  margin: 0;
+}
+
+/* The typing caret. Steps rather than eases, because a blinking cursor that
+   fades is a glow, not a cursor. */
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--brand-bright);
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.chat-foot {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--hairline);
+  background: var(--surface);
 }
 
-.neural-network {
-  width: 100%;
-  height: 100%;
-  position: relative;
+.chat-input {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  background: var(--bg);
 }
 
-.node {
+.chat-mic {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--text-faint);
+  border: 1px solid var(--hairline-strong);
+  transition: color var(--t-base) ease, border-color var(--t-base) ease,
+    background var(--t-base) ease, box-shadow var(--t-base) ease;
+}
+
+.chat-mic.is-on {
+  color: #03130d;
+  background: var(--brand-bright);
+  border-color: var(--brand-bright);
+  box-shadow: 0 0 0 5px var(--glow-soft);
+}
+
+/* -------------------------------------------------------------------- chips --- */
+
+.chips {
   position: absolute;
-  width: 60px;
-  height: 60px;
-  background: var(--green-primary);
-  border: 2px solid var(--green-dark);
-  display: flex;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.chip {
+  position: absolute;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  background: color-mix(in srgb, var(--bg-elev) 90%, transparent);
 }
 
-.node::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: var(--green-light);
-  opacity: 0.3;
-  z-index: -1;
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+  .chip {
+    background: var(--bg-elev);
+  }
 }
 
-.scroll-indicator {
+.chip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand-bright);
+}
+
+.chip-a {
+  top: 4%;
+  left: -6%;
+}
+
+.chip-b {
+  bottom: 12%;
+  right: -8%;
+}
+
+.chip-c {
+  bottom: -2%;
+  left: 4%;
+}
+
+/* ---------------------------------------------------------------------- cue --- */
+
+.hero-cue {
   position: absolute;
-  bottom: 2rem;
+  bottom: 1.75rem;
   left: 50%;
-  transform: translateX(-50%);
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
   z-index: 2;
 }
 
-.scroll-arrow {
-  width: 24px;
-  height: 24px;
-  border-right: 2px solid var(--green-primary);
-  border-bottom: 2px solid var(--green-primary);
-  transform: rotate(45deg);
+.hero-cue-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 
-@media (max-width: 968px) {
-  .hero-content {
+.hero-cue-rail {
+  position: relative;
+  width: 1px;
+  height: 38px;
+  overflow: hidden;
+  background: var(--hairline-strong);
+}
+
+.hero-cue-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, var(--brand-bright), transparent);
+}
+
+/* ------------------------------------------------------------------ narrow --- */
+
+@media (max-width: 1024px) {
+  .hero-inner {
     grid-template-columns: 1fr;
+    gap: 3.5rem;
+  }
+
+  .hero-copy {
+    align-items: center;
     text-align: center;
-    gap: 3rem;
   }
 
-  .hero-title {
-    font-size: 3rem;
+  .hero-sub,
+  .hero-facts {
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  .hero-subtitle {
-    font-size: 1.1rem;
+  .hero-facts {
+    justify-content: center;
+    text-align: center;
+    gap: 1.25rem 2rem;
   }
 
-  .hero-buttons {
+  .hero-actions {
     justify-content: center;
   }
 
-  .ai-visualization {
-    height: 300px;
+  .hero-stage {
+    min-height: 24rem;
+  }
+
+  /* The chips hang outside the stage box, which has no room to spare once the
+     grid is a single column. */
+  .chip-a {
+    left: 0;
+  }
+
+  .chip-b {
+    right: 0;
   }
 }
 
 @media (max-width: 640px) {
   .hero {
-    padding: 6rem 1.5rem 3rem;
+    padding-top: calc(var(--nav-h) + 2.5rem);
   }
 
-  .hero-title {
-    font-size: 2.5rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
-  }
-
-  .hero-buttons {
+  .hero-facts {
     flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .hero-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  /* Magnetic wraps each action, so the button only fills the row if the wrapper
+     does too. */
+  .hero-actions > *,
+  .hero-actions a,
+  .hero-actions .btn {
     width: 100%;
   }
 
-  .btn-primary,
-  .btn-secondary {
-    width: 100%;
+  .chat-body {
+    height: 15rem;
+  }
+
+  .chips {
+    display: none;
+  }
+
+  .hero-cue {
+    display: none;
   }
 }
-

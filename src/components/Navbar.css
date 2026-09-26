@@ -1,221 +1,267 @@
-.navbar {
+.nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
-  padding: 1.5rem 0;
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  border-bottom: 3px solid var(--border-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.navbar.scrolled {
-  background: rgba(255, 255, 255, 1);
-  padding: 1rem 0;
-  border-bottom: 3px solid var(--green-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.navbar-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
+  height: var(--nav-h);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 800;
-  cursor: pointer;
-  text-decoration: none;
 }
 
-.navbar-container a {
-  text-decoration: none;
-  color: inherit;
-}
-
-.logo-text {
-  color: var(--text-primary);
-}
-
-.logo-ai {
-  color: var(--green-primary);
-}
-
-.nav-links {
-  display: flex;
-  gap: 2.5rem;
-  align-items: center;
-}
-
-.nav-links a,
-.nav-links Link {
-  color: var(--text-primary);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.nav-links a::after {
-  content: '';
+/* The blurred backing, faded in on scroll. Kept as its own layer so the bar's
+   contents never inherit a partial opacity. */
+.nav-veil {
   position: absolute;
-  bottom: -5px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--green-primary);
-  transition: width 0.3s ease;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border-bottom: 1px solid var(--hairline);
 }
 
-.nav-links a:hover::after {
+/* color-mix is recent; this keeps the bar legible where it is unsupported. */
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+  .nav-veil {
+    background: var(--bg);
+    opacity: 0.88;
+  }
+}
+
+.nav-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
   width: 100%;
 }
 
-.nav-links a:hover {
-  color: var(--green-primary);
+/* ------------------------------------------------------------------- brand --- */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  flex-shrink: 0;
 }
 
-.cta-button {
-  background: var(--green-primary);
-  color: var(--white);
-  border: 2px solid var(--green-primary);
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: #03130d;
+  background: linear-gradient(140deg, var(--brand-bright), var(--brand));
+  box-shadow: 0 4px 16px -6px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
-.cta-button:hover {
-  background: var(--green-dark);
-  border-color: var(--green-dark);
+.brand-word {
+  color: var(--text);
 }
 
-/* Desktop actions cluster (sign in + primary CTA) */
+.brand-ai {
+  color: var(--brand-text);
+  margin-left: 0.22em;
+}
+
+/* ------------------------------------------------------------------- links --- */
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.nav-link {
+  position: relative;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  border-radius: var(--r-pill);
+  transition: color var(--t-fast) ease;
+}
+
+.nav-link:hover,
+.nav-link.is-active {
+  color: var(--text);
+}
+
+/* Travels between links via layoutId. Sits behind the label. */
+.nav-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+}
+
+.nav-link-text {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-underline {
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.15rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand-bright);
+  box-shadow: 0 0 10px var(--glow);
+}
+
+/* ----------------------------------------------------------------- actions --- */
+
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.85rem;
+  flex-shrink: 0;
 }
 
-.nav-action-link {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 0.95rem;
+/* Sits between the links and the actions, and is the only control that survives
+   every breakpoint. `margin-left: auto` keeps it pinned to the right of the
+   links once the links themselves are gone. */
+.nav-theme {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.nav-quiet {
+  font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.2s ease;
+  color: var(--text-dim);
+  transition: color var(--t-fast) ease;
 }
 
-.nav-action-link:hover {
-  color: var(--green-primary);
+.nav-quiet:hover {
+  color: var(--brand-text);
 }
 
-/* The in-panel action list only exists for the mobile layout */
-.nav-links-actions {
-  display: none;
+.nav-cta {
+  padding: 0.62rem 1.15rem;
+  font-size: 0.88rem;
 }
 
-.nav-signout {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
+/* The arrow nudges forward on hover — the smallest possible signal that a
+   control leads somewhere. */
+.arrow {
+  transition: transform var(--t-base) var(--ease-out-expo);
 }
 
-/* Hamburger — hidden until the links collapse */
-.nav-toggle {
+.btn:hover .arrow,
+.sheet-link:hover .arrow {
+  transform: translateX(3px);
+}
+
+/* ------------------------------------------------------------------ burger --- */
+
+.nav-burger {
   display: none;
   flex-direction: column;
   justify-content: center;
-  gap: 5px;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
+  gap: 4px;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
 }
 
-.nav-toggle-bar {
+.burger-bar {
   display: block;
-  width: 22px;
-  height: 2px;
+  width: 18px;
+  height: 1.8px;
   margin: 0 auto;
-  background: var(--text-primary);
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  border-radius: 2px;
+  background: var(--text);
 }
 
-.nav-toggle-bar.open:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
+/* ------------------------------------------------------------------- sheet --- */
+
+.nav-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 }
 
-.nav-toggle-bar.open:nth-child(2) {
-  opacity: 0;
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+  .nav-sheet {
+    background: var(--bg);
+  }
 }
 
-.nav-toggle-bar.open:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
+.nav-sheet-inner {
+  width: 100%;
+  padding: calc(var(--nav-h) + 2rem) var(--gutter) 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sheet-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  font-size: clamp(1.7rem, 8vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--text);
+  border-bottom: 1px solid var(--hairline);
+  transition: color var(--t-base) ease, padding-left var(--t-base) var(--ease-out-expo);
+}
+
+.sheet-link:hover,
+.sheet-link:active {
+  color: var(--brand-text);
+  padding-left: 0.5rem;
+}
+
+.sheet-link .arrow {
+  width: 22px;
+  height: 22px;
+  color: var(--text-faint);
+}
+
+.sheet-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.sheet-foot .btn {
+  width: 100%;
+}
+
+/* ------------------------------------------------------------------ narrow --- */
+
+@media (max-width: 1024px) {
+  .nav-links {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
-  .navbar-container {
-    padding: 0 1.5rem;
-    /* Let the expanded link panel drop onto its own row below the logo */
-    flex-wrap: wrap;
-  }
-
-  .nav-toggle {
-    display: flex;
-    order: 3;
-  }
-
-  /* Desktop cluster collapses into the panel below */
+  /* Actions collapse into the sheet; the theme toggle and burger stay in the bar. */
   .nav-actions {
     display: none;
   }
 
-  .nav-links {
-    display: none;
-    order: 4;
-    width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-    padding: 0.5rem 0 1rem;
-    border-top: 1px solid var(--border-color);
-  }
-
-  .nav-links.open {
+  .nav-burger {
     display: flex;
-  }
-
-  .nav-links a,
-  .nav-signout {
-    width: 100%;
-    padding: 0.85rem 0;
-    font-size: 1rem;
-  }
-
-  .nav-links-actions {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid var(--border-color);
   }
 }

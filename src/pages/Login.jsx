@@ -2,7 +2,10 @@ import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import DotBackground from '../components/DotBackground'
+import SplitText from '../components/motion/SplitText'
+import { AuthAside, AuthField, AuthMessage, AuthSubmit } from '../components/AuthParts'
 import { useAuth } from '../context/AuthContext'
+import { ease } from '../motion/tokens'
 import './Auth.css'
 
 const Login = () => {
@@ -54,26 +57,50 @@ const Login = () => {
   }
 
   return (
-    <div className="auth-page">
+    <div className="page auth">
       <DotBackground />
-      <motion.div
-        className="auth-card"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="auth-label">// SIGN IN</div>
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-subtitle">Pick up where you left off.</p>
 
-        {error && <div className="auth-message error">{error}</div>}
-        {notice && <div className="auth-message success">{notice}</div>}
+      <div className="auth-layout">
+        <motion.div
+          className="auth-card panel rim"
+          initial={{ opacity: 0, y: 26, scale: 0.97, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+          transition={{ duration: 0.7, ease: ease.out }}
+        >
+          <span className="eyebrow">Sign in</span>
 
-        <form onSubmit={handleSubmit}>
-          <div className="auth-field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
+          <h1 className="auth-title">
+            <SplitText trigger="mount" delay={0.25}>
+              Welcome back
+            </SplitText>
+          </h1>
+
+          <motion.p
+            className="auth-sub"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: ease.out, delay: 0.5 }}
+          >
+            Pick up whichever conversation you left half-finished.
+          </motion.p>
+
+          <AuthMessage kind="error">{error}</AuthMessage>
+          <AuthMessage kind="good">{notice}</AuthMessage>
+
+          {/* The form is the stagger parent: fields and the button arrive in
+              reading order rather than all at once. */}
+          <motion.form
+            onSubmit={handleSubmit}
+            className="auth-form"
+            variants={{
+              hidden: {},
+              show: { transition: { staggerChildren: 0.08, delayChildren: 0.4 } },
+            }}
+            initial="hidden"
+            animate="show"
+          >
+            <AuthField
+              label="Email"
               type="email"
               required
               autoComplete="email"
@@ -81,12 +108,9 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               disabled={submitting}
             />
-          </div>
 
-          <div className="auth-field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
+            <AuthField
+              label="Password"
               type="password"
               required
               autoComplete="current-password"
@@ -94,23 +118,30 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               disabled={submitting}
             />
+
+            <AuthSubmit busy={submitting} idle="Sign in" working="Signing in…" />
+          </motion.form>
+
+          <div className="auth-meta">
+            <button type="button" className="auth-link" onClick={handleReset}>
+              Forgot your password?
+            </button>
           </div>
 
-          <button className="auth-submit" type="submit" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+          <p className="auth-foot">
+            Don’t have an account? <Link to="/signup">Create one</Link>
+          </p>
+        </motion.div>
 
-        <div className="auth-meta">
-          <button type="button" className="auth-link-button" onClick={handleReset}>
-            Forgot your password?
-          </button>
-        </div>
-
-        <p className="auth-footer">
-          Don&apos;t have an account? <Link to="/signup">Create one</Link>
-        </p>
-      </motion.div>
+        <AuthAside
+          title="Talking through it is the part that sticks."
+          lines={[
+            'Your documents stay private to your account',
+            'Conversations pick up where you stopped',
+            '25 messages a day on the free plan',
+          ]}
+        />
+      </div>
     </div>
   )
 }

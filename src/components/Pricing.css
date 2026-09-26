@@ -1,325 +1,316 @@
-.pricing-page {
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
+.pricing {
+  padding-bottom: 6rem;
 }
 
-.pricing-hero {
-  padding: 10rem 2rem 4rem;
+/* --------------------------------------------------------------------- top --- */
+
+.pricing-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
   text-align: center;
-  background: transparent;
-}
-
-.pricing-hero-content {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.pricing-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--green-primary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-family: 'Courier New', monospace;
-  margin-bottom: 1rem;
+  padding-bottom: 3.5rem;
 }
 
 .pricing-title {
-  font-size: 4rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: 1.5rem;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.6rem, 7vw, 4.6rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
 }
 
-.pricing-subtitle {
-  font-size: 1.3rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
-  max-width: 600px;
-  margin: 0 auto;
+.pricing-sub {
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.66;
+  color: var(--text-dim);
+  max-width: 38rem;
 }
 
-.pricing-plans {
-  padding: 4rem 2rem;
-  background: var(--bg-secondary);
-}
-
-.pricing-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.plans-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 3rem;
-}
-
-.pricing-card {
-  background: var(--white);
-  border: 3px solid var(--border-color);
-  padding: 3rem;
-  position: relative;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.pricing-card:hover {
-  border-color: var(--green-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.pricing-card.popular {
-  border-color: var(--green-primary);
-  border-width: 3px;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
-}
-
-.popular-badge {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--green-primary);
-  color: var(--white);
-  padding: 0.5rem 1.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.plan-label {
+.pricing-flag {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  max-width: 40rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
   font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--green-primary);
-  letter-spacing: 0.1em;
-  font-family: 'Courier New', monospace;
-  margin-bottom: 1rem;
+  color: var(--text-dim);
+  text-align: left;
+}
+
+.flag-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  margin-top: 0.52rem;
+  border-radius: 50%;
+  background: var(--warn);
+  animation: pulse-dot 2.6s var(--ease-in-out-quart) infinite;
+}
+
+.pricing-note {
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------- plans --- */
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.1rem;
+  align-items: stretch;
+}
+
+.plan {
+  position: relative;
+  padding: 1.6rem;
+}
+
+.plan .tilt-body {
+  gap: 0.55rem;
+}
+
+/* The recommended card sits forward of the others: brighter fill, deeper shadow,
+   and a lit border rather than a bigger size, which would break the grid. */
+.plan.is-popular {
+  background: var(--surface-2);
+  box-shadow: var(--shadow-lg), 0 0 40px -18px var(--glow);
+}
+
+/* A 1px animated ring.
+   `padding: 1px` plus the xor mask leaves only the border painted, so the
+   gradient lights the edge and not the fill.
+
+   The spinning gradient lives on the pseudo-element, not on this box. Rotating
+   the masked box itself turns the mask with it, and the oversized gradient then
+   sweeps out past the card and streaks across its neighbours. Here the mask
+   stays fixed to the card's border while the light turns underneath it, and
+   `overflow: hidden` guarantees nothing escapes even mid-rotation. */
+.plan-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  overflow: hidden;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.plan-halo::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Square and wider than the card, so a corner is never left unlit as it
+     turns. */
+  width: 190%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--brand-bright) 70deg,
+    var(--accent-cyan) 120deg,
+    transparent 200deg,
+    transparent 360deg
+  );
+  animation: halo-spin 6s linear infinite;
+}
+
+@keyframes halo-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.plan-flag {
+  position: absolute;
+  top: -0.7rem;
+  right: 1.2rem;
+  z-index: 3;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: #03130d;
+  background: linear-gradient(135deg, var(--brand-bright), var(--brand));
+  box-shadow: 0 4px 14px -4px var(--glow);
+}
+
+.plan-name {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brand-text);
 }
 
 .plan-price {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.3rem;
+  margin: 0.35rem 0 0.15rem;
 }
 
-.price-amount {
-  font-size: 3.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1;
+.plan-amount {
+  font-size: clamp(2.2rem, 4vw, 2.9rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
 }
 
-.price-period {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  font-weight: 400;
+.plan-cadence {
+  font-size: 0.86rem;
+  color: var(--text-faint);
 }
 
-.plan-description {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
+.plan-desc {
+  font-size: 0.88rem;
   line-height: 1.6;
+  color: var(--text-dim);
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--hairline);
 }
 
 .plan-features {
   list-style: none;
-  padding: 0;
-  margin: 0 0 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 0 1.35rem;
 }
 
 .plan-features li {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
-  font-size: 0.95rem;
-  color: var(--text-primary);
+  gap: 0.6rem;
+  font-size: 0.88rem;
   line-height: 1.5;
+  color: var(--text);
 }
 
-.feature-check {
-  color: var(--green-primary);
-  font-weight: 700;
-  font-size: 1.1rem;
+.plan-tick {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-  margin-top: 0.1rem;
+  width: 17px;
+  height: 17px;
+  margin-top: 0.15rem;
+  border-radius: 50%;
+  color: var(--brand-text);
+  background: var(--brand-soft);
+  border: 1px solid var(--hairline);
 }
 
-.plan-button {
+.plan.is-popular .plan-tick {
+  color: #03130d;
+  background: linear-gradient(140deg, var(--brand-bright), var(--brand));
+  border-color: transparent;
+}
+
+/* Pushed to the bottom so every card's button sits on the same line regardless
+   of how many features it lists. */
+.plan-action {
+  margin-top: auto;
+}
+
+.plan-btn {
   width: 100%;
-  font-family: inherit;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid;
+  padding: 0.8rem 1.1rem;
+  font-size: 0.9rem;
 }
 
-.button-primary {
-  background: var(--green-primary);
-  color: var(--white);
-  border-color: var(--green-primary);
-}
-
-.button-primary:hover {
-  background: var(--green-dark);
-  border-color: var(--green-dark);
-}
-
-.button-secondary {
-  background: transparent;
-  color: var(--text-primary);
-  border-color: var(--dark-gray);
-}
-
-.button-secondary:hover {
-  border-color: var(--green-primary);
-  color: var(--green-primary);
-}
+/* --------------------------------------------------------------------- faq --- */
 
 .pricing-faq {
-  padding: 6rem 2rem;
-  background: transparent;
+  padding-top: clamp(4.5rem, 10vh, 7rem);
 }
 
-.faq-header {
-  text-align: center;
-  margin-bottom: 4rem;
-}
-
-.faq-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-top: 1rem;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.faq-list {
-  max-width: 800px;
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 48rem;
   margin: 0 auto;
 }
 
 .faq-item {
-  background: var(--white);
-  border: 3px solid var(--border-color);
-  padding: 2rem;
-  margin-bottom: 1.5rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color var(--t-base) ease, background var(--t-base) ease;
 }
 
 .faq-item:hover {
-  border-color: var(--green-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--hairline-strong);
 }
 
-.faq-question {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
+.faq-item.is-open {
+  border-color: var(--brand);
+  background: var(--surface-2);
 }
 
-.faq-answer {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-@media (max-width: 768px) {
-  .pricing-hero {
-    padding: 8rem 1.5rem 3rem;
-  }
-
-  .pricing-title {
-    font-size: 3rem;
-  }
-
-  .pricing-subtitle {
-    font-size: 1.1rem;
-  }
-
-  .pricing-plans {
-    padding: 3rem 1.5rem;
-  }
-
-  .plans-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .pricing-card {
-    padding: 2rem;
-  }
-
-  .price-amount {
-    font-size: 2.5rem;
-  }
-
-  .pricing-faq {
-    padding: 4rem 1.5rem;
-  }
-
-  .faq-title {
-    font-size: 2.5rem;
-  }
-}
-
-
-/* The Institution CTA is an anchor, so it needs the block-level sizing a
-   button gets for free. */
-a.plan-button {
-  display: block;
-  text-align: center;
-  text-decoration: none;
-}
-
-.pricing-notice {
-  max-width: 34rem;
-  margin: 1.5rem auto 0;
-  padding: 0.85rem 1.1rem;
-  background: var(--green-lighter);
-  border-left: 3px solid var(--green-primary);
-  color: var(--green-darker);
-  font-size: 0.92rem;
-  line-height: 1.6;
+.faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.35rem;
   text-align: left;
+  font-size: 1rem;
+  font-weight: 550;
+  letter-spacing: -0.015em;
 }
 
-.pricing-status {
-  max-width: 40rem;
-  margin: 0 auto 2rem;
-  padding: 0.85rem 1.1rem;
-  background: var(--light-gray-2);
-  border-left: 3px solid var(--border-color);
-  color: var(--text-secondary);
-  font-size: 0.92rem;
+.faq-chev {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--brand-text);
+  border: 1px solid var(--hairline-strong);
 }
 
-.pricing-status-error {
-  background: #fef2f2;
-  border-color: #dc2626;
-  color: #991b1b;
+.faq-a-wrap {
+  overflow: hidden;
 }
 
-.pricing-status a {
-  color: inherit;
-  font-weight: 600;
+.faq-a {
+  padding: 0 1.35rem 1.25rem;
+  font-size: 0.93rem;
+  line-height: 1.68;
+  color: var(--text-dim);
+  max-width: 42rem;
 }
 
-.plan-button:disabled {
-  opacity: 0.7;
-  cursor: progress;
+/* ------------------------------------------------------------------ narrow --- */
+
+@media (max-width: 1080px) {
+  .plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .plans {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-flag {
+    right: 1rem;
+  }
 }

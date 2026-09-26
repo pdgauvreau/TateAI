@@ -1,100 +1,210 @@
-.conv-error {
-  margin-bottom: 1rem;
-  padding: 0.7rem 0.9rem;
-  font-size: 0.85rem;
-  background: #fef2f2;
-  border-left: 3px solid #dc2626;
-  color: #991b1b;
+.conv {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
+
+.conv-listwrap,
+.conv-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  flex: 1;
+}
+
+.conv-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conv-skel {
+  height: 3.2rem;
+  border-radius: var(--r-md);
+}
+
+/* -------------------------------------------------------------------- list --- */
 
 .conv-list {
   list-style: none;
-  margin: 0 0 1.25rem;
-  padding: 0;
-  border-top: 1px solid var(--light-gray-3);
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .conv-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid var(--light-gray-3);
+  gap: 0.6rem;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  padding: 0 0.7rem 0 0;
+  overflow: hidden;
+  transition: border-color var(--t-base) ease, background var(--t-base) ease;
+}
+
+.conv-item:hover {
+  border-color: var(--brand);
+  background: var(--surface-2);
 }
 
 .conv-open {
   flex: 1;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.75rem;
   min-width: 0;
-  padding: 0.9rem 0;
-  background: none;
-  border: none;
-  font: inherit;
+  padding: 0.8rem 0.25rem 0.8rem 0.9rem;
   text-align: left;
-  cursor: pointer;
 }
 
 .conv-title {
-  font-weight: 600;
-  font-size: 0.95rem;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.92rem;
+  font-weight: 550;
+  letter-spacing: -0.015em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.conv-open:hover .conv-title {
-  color: var(--green-dark);
-}
-
 .conv-date {
   flex-shrink: 0;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
 }
 
-.conv-picker {
-  flex: 1;
+/* Hidden until the row is hovered, then slides in — the affordance appears only
+   where the pointer already is. */
+.conv-arrow {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--brand-text);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity var(--t-base) ease, transform var(--t-base) var(--ease-out-expo);
+}
+
+.conv-item:hover .conv-arrow,
+.conv-open:focus-visible .conv-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ------------------------------------------------------------------ picker --- */
+
+.conv-prompt {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+
+.conv-checks {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-}
-
-.conv-picker-label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.2rem;
+  gap: 0.35rem;
+  /* Long material lists scroll inside the panel rather than stretching it. */
+  max-height: 16rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .conv-check {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  font-size: 0.92rem;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
   cursor: pointer;
+  transition: border-color var(--t-fast) ease, background var(--t-fast) ease;
+}
+
+.conv-check:hover {
+  border-color: var(--hairline-strong);
+}
+
+.conv-check.is-on {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+/* The real input stays in the DOM for keyboard and screen-reader support; the
+   box beside it is what gets drawn. */
+.conv-check input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.check-box {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  color: #03130d;
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+  transition: background var(--t-base) ease, border-color var(--t-base) ease;
+}
+
+.conv-check.is-on .check-box {
+  background: linear-gradient(140deg, var(--brand-bright), var(--brand));
+  border-color: transparent;
+}
+
+.conv-check input:focus-visible + .check-box {
+  outline: 2px solid var(--brand-bright);
+  outline-offset: 2px;
+}
+
+.check-label {
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .conv-picker-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-top: auto;
-  padding-top: 1rem;
+  padding-top: 0.5rem;
+}
+
+.conv-go {
+  flex: 1;
+  padding: 0.75rem 1.1rem;
+  font-size: 0.9rem;
+}
+
+/* The selection count, remounted on every change so it pops each time. */
+.conv-count {
+  display: grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 0.3rem;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  background: rgba(3, 19, 13, 0.22);
 }
 
 .conv-cancel {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  text-decoration: underline;
-  cursor: pointer;
+  font-size: 0.86rem;
+  color: var(--text-faint);
+  transition: color var(--t-fast) ease;
 }
 
 .conv-cancel:hover {
-  color: var(--text-primary);
+  color: var(--text);
 }

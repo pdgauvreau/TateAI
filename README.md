@@ -94,17 +94,50 @@ TateAI/
 │       └── extract.js     # Serverless PDF text extraction
 ├── src/
 │   ├── components/        # Marketing sections, navbar, footer, upload, route guard
+│   │   └── motion/        # Reusable motion primitives (see Front end below)
 │   ├── context/
 │   │   └── AuthContext.jsx
 │   ├── lib/
 │   │   ├── documents.js
 │   │   └── supabase.js
+│   ├── motion/            # Motion tokens and hooks — no rendering
 │   └── pages/             # Home, Login, Signup, Dashboard, Legal, NotFound
 ├── supabase/
 │   └── migrations/
 ├── vercel.json
 └── vite.config.js
 ```
+
+## Front end
+
+Two files hold the design system, and everything else resolves through them:
+
+- **`src/index.css`** — colour, type, shape, and easing as custom properties,
+  defined twice: once for dark and once for light. A theme is a `data-theme`
+  attribute on `<html>`, resolved before first paint by an inline script in
+  `index.html` so a light-theme reader never sees a flash of dark. That
+  attribute is also what `useTheme()` reads as its initial value, so there is
+  one source of truth rather than two.
+- **`src/motion/tokens.js`** — the easing curves, spring configurations, and
+  entrance variants every component imports instead of writing transitions
+  inline. The cubic-beziers mirror the custom properties in `index.css`, so a
+  CSS transition and a Framer transition on the same element agree.
+
+`src/motion/hooks.js` holds the pointer- and scroll-driven hooks (tilt, magnetic
+pull, cursor position, count-up, a frame loop that pauses off screen). Two rules
+hold throughout: continuous input is written to motion values rather than React
+state, so a mousemove never re-renders the tree; and every hook degrades to a
+still, usable version of itself under `prefers-reduced-motion` rather than
+switching its feature off.
+
+`src/components/motion/` holds the primitives built on those: scroll reveals,
+split-text headlines, tilt cards, the marquee, the progress ring, the theme
+toggle, and the app chrome (scroll progress, cursor glow, route transitions).
+
+Reduced motion is handled in one place — `<MotionConfig reducedMotion="user">`
+in `App.jsx` covers everything Framer animates, and a media query at the end of
+`index.css` covers the CSS-driven half. Per-component `if (reduced) return null`
+is deliberately avoided: it tends to leave content invisible.
 
 ## AI provider
 

@@ -1,98 +1,212 @@
-.legal-page {
-  min-height: 100vh;
-  padding: 10rem 1.5rem 6rem;
+.legal {
+  padding-bottom: 5rem;
+}
+
+.legal-layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+/* --------------------------------------------------------------------- toc --- */
+
+.legal-side {
+  position: sticky;
+  top: calc(var(--nav-h) + 2.5rem);
+}
+
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.1rem;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  /* A long policy has more headings than fit a viewport; the panel scrolls, the
+     page does not jump. */
+  max-height: calc(100vh - var(--nav-h) - 5rem);
+  overflow-y: auto;
+}
+
+.toc-head {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.toc ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.toc-link {
+  position: relative;
+  display: block;
+  padding: 0.4rem 0.5rem 0.4rem 0.85rem;
+  border-radius: var(--r-sm);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-faint);
+  transition: color var(--t-base) ease, background var(--t-base) ease;
+}
+
+.toc-link:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.toc-link.is-active {
+  color: var(--brand-text);
+}
+
+/* The marker that travels between entries. */
+.toc-marker {
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--brand-bright);
+  box-shadow: 0 0 10px var(--glow);
+}
+
+.toc-text {
   position: relative;
 }
 
-.legal-container {
-  max-width: 44rem;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
+/* -------------------------------------------------------------------- body --- */
+
+.legal-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding-bottom: 2.25rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--hairline);
 }
 
 .legal-title {
   font-size: clamp(2rem, 5vw, 3rem);
-  margin-bottom: 1.5rem;
-}
-
-.legal-body {
-  color: var(--text-secondary);
-  font-size: 1.05rem;
-  margin-bottom: 1.25rem;
-}
-
-.legal-body a {
-  color: var(--green-dark);
-  font-weight: 600;
-}
-
-.legal-back {
-  display: inline-block;
-  margin-top: 1.5rem;
-  color: var(--green-dark);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.legal-back:hover {
-  text-decoration: underline;
+  font-weight: 700;
+  letter-spacing: -0.04em;
 }
 
 .legal-date {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 2.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-faint);
+}
+
+.legal-warning {
+  font-size: 0.86rem;
+  max-width: 44rem;
+  border-color: rgba(251, 191, 36, 0.35);
 }
 
 .legal-section {
-  margin-bottom: 2.25rem;
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--hairline);
+  /* Anchor links land below the fixed navbar rather than under it. */
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem);
 }
 
 .legal-heading {
-  font-size: 1.15rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.22rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.9rem;
 }
 
-.legal-body,
-.legal-body p {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.7;
-}
-
-.legal-body p + p {
-  margin-top: 0.9rem;
-}
-
-.legal-body ul {
-  margin: 0.9rem 0 0.9rem 1.25rem;
-  color: var(--text-secondary);
-}
-
-.legal-body li {
-  margin-bottom: 0.5rem;
-  line-height: 1.7;
-}
-
-.legal-body strong {
-  color: var(--text-primary);
-}
-
-.legal-body a {
-  color: var(--green-dark);
-  font-weight: 600;
-}
-
-.legal-crosslink {
-  margin-top: 2.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--light-gray-3);
-  color: var(--text-secondary);
+.legal-prose {
+  max-width: 44rem;
   font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--text-dim);
 }
 
-.legal-crosslink a {
-  color: var(--green-dark);
+.legal-prose p + p {
+  margin-top: 0.85rem;
+}
+
+.legal-prose ul {
+  margin: 0.85rem 0 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.legal-prose li {
+  padding-left: 0.25rem;
+}
+
+.legal-prose li::marker {
+  color: var(--brand);
+}
+
+.legal-prose strong {
+  color: var(--text);
   font-weight: 600;
+}
+
+.legal-prose a {
+  color: var(--brand-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* -------------------------------------------------------------------- foot --- */
+
+.legal-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding-top: 2rem;
+}
+
+.legal-cross {
+  font-size: 0.92rem;
+  color: var(--text-dim);
+}
+
+.legal-cross a {
+  color: var(--brand-text);
+  font-weight: 550;
+}
+
+.legal-back {
+  padding: 0.75rem 1.3rem;
+  font-size: 0.9rem;
+}
+
+.arrow-back {
+  display: grid;
+  place-items: center;
+  transition: transform var(--t-base) var(--ease-out-expo);
+}
+
+.legal-back:hover .arrow-back {
+  transform: translateX(-3px);
+}
+
+/* ------------------------------------------------------------------ narrow --- */
+
+@media (max-width: 900px) {
+  .legal-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* A sticky sidebar above the text would cover the text it indexes. */
+  .legal-side {
+    display: none;
+  }
 }

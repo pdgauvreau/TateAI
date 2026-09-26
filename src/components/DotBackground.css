@@ -1,60 +1,167 @@
-.dot-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
+/* The ambient field. Fixed, behind everything, never interactive. */
 
-  /* Updated directly by the component on each animation frame */
-  --mouse-x: -1000px;
-  --mouse-y: -1000px;
-  --highlight-opacity: 0;
-  --dot-spacing: 30px;
-  --dot-radius: 2.5px;
-  --highlight-size: 150px;
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  /* Written by the component on each animation frame. */
+  --mx: -1000px;
+  --my: -1000px;
+  --highlight: 0;
+
+  --grid: 30px;
+  --dot-r: 1.6px;
+  --halo: 190px;
 }
 
-.dot-layer {
+/* The canvas reads this to colour its points, so a theme change carries through
+   to the constellation. */
+:root,
+:root[data-theme='dark'] {
+  --dot-rgb: 52, 226, 160;
+}
+
+:root[data-theme='light'] {
+  --dot-rgb: 5, 150, 105;
+}
+
+/* ------------------------------------------------------------------ aurora --- */
+
+.ambient-aurora {
+  position: absolute;
+  inset: -20%;
+}
+
+.aurora {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  /* One big blur per blob. Cheaper and softer than stacking box-shadows, and it
+     stays a single composited layer while it moves. */
+  filter: blur(90px);
+  will-change: transform;
+}
+
+.aurora-1 {
+  top: -6%;
+  left: -8%;
+  width: 46vw;
+  height: 46vw;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.34), transparent 66%);
+}
+
+.aurora-2 {
+  bottom: -14%;
+  right: -10%;
+  width: 52vw;
+  height: 52vw;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.22), transparent 66%);
+}
+
+.aurora-3 {
+  top: 34%;
+  right: 22%;
+  width: 34vw;
+  height: 34vw;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.18), transparent 66%);
+}
+
+:root[data-theme='light'] .aurora-1 {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.22), transparent 66%);
+}
+
+:root[data-theme='light'] .aurora-2 {
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 66%);
+}
+
+:root[data-theme='light'] .aurora-3 {
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.14), transparent 66%);
+}
+
+/* -------------------------------------------------------------------- grid --- */
+
+.ambient-grid {
   position: absolute;
   inset: 0;
   background-position: center;
-  background-size: var(--dot-spacing) var(--dot-spacing);
+  background-size: var(--grid) var(--grid);
 }
 
-.dot-layer-base {
+.ambient-grid-base {
   background-image: radial-gradient(
     circle at center,
-    rgba(209, 213, 219, 0.6) var(--dot-radius),
-    transparent var(--dot-radius)
+    var(--dot) var(--dot-r),
+    transparent var(--dot-r)
   );
 }
 
-/* Same grid in green, revealed only inside a soft circle at the cursor. */
-.dot-layer-highlight {
+/* The same grid in brand colour, visible only inside a soft circle at the
+   cursor. One masked layer instead of hundreds of individually lit dots. */
+.ambient-grid-hot {
   background-image: radial-gradient(
     circle at center,
-    var(--green-primary) var(--dot-radius),
-    transparent var(--dot-radius)
+    var(--brand-bright) var(--dot-r),
+    transparent var(--dot-r)
   );
-  opacity: var(--highlight-opacity);
-  transition: opacity 0.3s ease;
+  opacity: var(--highlight);
+  transition: opacity 0.45s var(--ease-out-quint);
   -webkit-mask-image: radial-gradient(
-    circle var(--highlight-size) at var(--mouse-x) var(--mouse-y),
-    rgba(0, 0, 0, 0.9),
+    circle var(--halo) at var(--mx) var(--my),
+    #000,
+    rgba(0, 0, 0, 0.35) 45%,
     transparent 100%
   );
   mask-image: radial-gradient(
-    circle var(--highlight-size) at var(--mouse-x) var(--mouse-y),
-    rgba(0, 0, 0, 0.9),
+    circle var(--halo) at var(--mx) var(--my),
+    #000,
+    rgba(0, 0, 0, 0.35) 45%,
     transparent 100%
   );
 }
 
+/* ------------------------------------------------------------------ canvas --- */
+
+.ambient-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* ---------------------------------------------------------------- vignette --- */
+
+/* Darkens the corners so the aurora never fights text at the edges of the
+   viewport. Light theme lifts instead of darkens. */
+.ambient-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 120% 85% at 50% 45%,
+    transparent 40%,
+    var(--bg) 100%
+  );
+  opacity: 0.85;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .dot-layer-highlight {
+  .ambient-grid-hot {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .ambient {
+    --grid: 26px;
+  }
+
+  /* Big blurs are the most expensive thing on the page on a phone GPU. */
+  .aurora {
+    filter: blur(70px);
+  }
+
+  .aurora-3 {
     display: none;
   }
 }

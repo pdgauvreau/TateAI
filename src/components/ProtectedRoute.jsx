@@ -9,7 +9,13 @@ const ProtectedRoute = ({ children }) => {
   // Wait for the stored session to load before deciding — otherwise a refresh on
   // a protected page would bounce a signed-in user to the login screen.
   if (loading) {
-    return <div className="route-loading">Loading…</div>
+    // The spinner is drawn by .route-loading::before, so the text here is the
+    // label beside it rather than the whole indicator.
+    return (
+      <div className="route-loading" role="status">
+        Restoring your session
+      </div>
+    )
   }
 
   if (!user) {
