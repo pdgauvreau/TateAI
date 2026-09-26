@@ -165,44 +165,6 @@ export function useCountUp(target, { duration = 1.6, decimals = 0 } = {}) {
   return { ref, display: value.toFixed(decimals) }
 }
 
-/* -------------------------------------------- pointer position (global) --- */
-
-/**
- * The pointer's viewport position as two spring-smoothed motion values, plus a
- * flag for whether it is over the window at all.
- *
- * One listener serves every consumer that needs the cursor, rather than each
- * effect adding its own.
- */
-export function usePointerSpring(config = spring.drift) {
-  const reduced = useReducedMotion()
-  const x = useSpring(-200, config)
-  const y = useSpring(-200, config)
-  const [active, setActive] = useState(false)
-
-  useEffect(() => {
-    if (reduced) return
-    // Coarse pointers have no hover position to follow.
-    if (!window.matchMedia('(pointer: fine)').matches) return
-
-    const onMove = (event) => {
-      x.set(event.clientX)
-      y.set(event.clientY)
-      setActive(true)
-    }
-    const onLeave = () => setActive(false)
-
-    window.addEventListener('pointermove', onMove, { passive: true })
-    document.addEventListener('pointerleave', onLeave)
-    return () => {
-      window.removeEventListener('pointermove', onMove)
-      document.removeEventListener('pointerleave', onLeave)
-    }
-  }, [reduced, x, y])
-
-  return { x, y, active }
-}
-
 /* ------------------------------------------------------------ raf ticker --- */
 
 /**

@@ -181,24 +181,6 @@
   pointer-events: none;
 }
 
-/* ------------------------------------------------------------- cursor glow --- */
-
-.cursor-glow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9997;
-  pointer-events: none;
-  border-radius: 50%;
-  /* -50% keeps the layer centred on the pointer while `x`/`y` carry the position,
-     so the transform Framer writes is never fighting a centring offset. */
-  translate: -50% -50%;
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle, var(--glow-soft), transparent 62%);
-  filter: blur(14px);
-}
-
 /* ------------------------------------------------------------ theme toggle --- */
 
 .theme-toggle {
@@ -262,8 +244,3 @@
   animation: shimmer 1.5s linear infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cursor-glow {
-    display: none;
-  }
-}

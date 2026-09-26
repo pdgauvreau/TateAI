@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { motion, useMotionValue, useScroll, useSpring, useTransform } from 'framer-motion'
 import { pageVariants, spring } from '../../motion/tokens'
-import { usePointerSpring } from '../../motion/hooks'
 
 /**
  * App-level chrome: the things that live above every page and persist across
@@ -25,50 +24,6 @@ export const ScrollProgress = () => {
     <motion.div
       className="scroll-progress"
       style={{ scaleX, opacity }}
-      aria-hidden="true"
-    />
-  )
-}
-
-/**
- * A soft light that follows the cursor.
- *
- * Grows slightly over anything interactive, which it detects by walking up
- * from the hovered element rather than by requiring every button to register
- * itself.
- *
- * Suppressed entirely on coarse pointers and under reduced-motion (both handled
- * inside `usePointerSpring`), and always `pointer-events: none`, so it can never
- * intercept a click.
- */
-export const CursorGlow = () => {
-  const glow = usePointerSpring({ type: 'spring', stiffness: 90, damping: 22, mass: 0.7 })
-  const [hot, setHot] = useState(false)
-  const [enabled, setEnabled] = useState(false)
-
-  useEffect(() => {
-    if (!window.matchMedia('(pointer: fine)').matches) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    setEnabled(true)
-
-    const interactive = 'a, button, input, textarea, select, label, [role="button"], .tilt'
-    const onOver = (event) => {
-      const el = event.target
-      setHot(Boolean(el instanceof Element && el.closest(interactive)))
-    }
-
-    document.addEventListener('pointerover', onOver, { passive: true })
-    return () => document.removeEventListener('pointerover', onOver)
-  }, [])
-
-  if (!enabled) return null
-
-  return (
-    <motion.div
-      className="cursor-glow"
-      style={{ x: glow.x, y: glow.y }}
-      animate={{ opacity: glow.active ? 1 : 0, scale: hot ? 1.35 : 1 }}
-      transition={spring.snap}
       aria-hidden="true"
     />
   )

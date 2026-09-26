@@ -9,7 +9,7 @@ import { AnimatePresence, MotionConfig } from 'framer-motion'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
-import { CursorGlow, PageTransition, ScrollProgress } from './components/motion/Chrome'
+import { PageTransition, ScrollProgress } from './components/motion/Chrome'
 import { AuthProvider } from './context/AuthContext'
 import Home from './pages/Home'
 import Login from './pages/Login'
@@ -145,7 +145,6 @@ function App() {
         <Router>
           <div className="App">
             <ScrollProgress />
-            <CursorGlow />
             <Navbar />
             <AnimatedRoutes />
           </div>
