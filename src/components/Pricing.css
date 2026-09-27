@@ -63,6 +63,21 @@
   align-items: stretch;
 }
 
+.pricing-terms {
+  max-width: 46rem;
+  margin: 1.6rem auto 3rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.pricing-terms a {
+  color: var(--brand-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .plan {
   position: relative;
   padding: 1.6rem;

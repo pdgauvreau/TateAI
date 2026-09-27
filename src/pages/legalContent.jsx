@@ -1,10 +1,11 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 // These are drafts written to describe accurately what the service actually does
 // with data — which is the part a generic template gets wrong. They are not legal
 // advice and have not been reviewed by a lawyer.
 
-export const EFFECTIVE_DATE = 'September 9, 2026'
+export const EFFECTIVE_DATE = 'September 27, 2026'
 export const CONTACT_EMAIL = 'support@tateai.app'
 export const OPERATOR = 'Paul Gauvreau Jr.'
 export const STATE = 'California'
@@ -37,6 +38,16 @@ export const privacy = [
           stored so you can return to a conversation later.
         </p>
         <p>
+          <strong>Billing information, if you subscribe.</strong> Payment is handled entirely by
+          Stripe; we never see or store your card number. We keep your Stripe customer ID, which
+          plan you are on, your subscription status, and when it renews or ends.
+        </p>
+        <p>
+          <strong>Usage records.</strong> For each AI reply we record which model answered, how many
+          tokens it used, and what it cost, so we can apply your plan&apos;s allowance. These
+          records contain no message content.
+        </p>
+        <p>
           <strong>Nothing else.</strong> We do not use analytics, advertising, or tracking cookies.
           We do not build a profile of you beyond what is described here.
         </p>
@@ -61,6 +72,12 @@ export const privacy = [
             <strong>Anthropic</strong> — provides the AI. When you send a message, the text of the
             documents attached to that conversation and the conversation history are sent to
             Anthropic to generate a reply.
+          </li>
+          <li>
+            <strong>Stripe and Link</strong> — process payments for paid plans. Purchases are sold
+            through Link, a Stripe service that acts as the seller of record: it takes your payment,
+            handles sales tax, sends receipts, and answers payment questions. The payment details
+            you enter at checkout go to Stripe and Link under their own privacy policies, not ours.
           </li>
         </ul>
         <p>
@@ -112,8 +129,9 @@ export const privacy = [
       <>
         We keep your data until you delete it or close your account. Deleting a document or
         conversation removes it from our database and storage. Deleting your account removes your
-        account and everything attached to it. Backups may persist for a short period after
-        deletion.
+        account and everything attached to it, including your usage records, and cancels any
+        subscription. Backups may persist for a short period after deletion. Stripe and Link keep
+        their own records of payments you made, as the law requires them to.
       </>
     ),
   },
@@ -169,6 +187,102 @@ export const terms = [
       <>
         You must be 18 or older and able to enter a binding contract. One account per person. You
         are responsible for keeping your password secure and for activity under your account.
+      </>
+    ),
+  },
+  {
+    heading: 'Plans and payment',
+    body: (
+      <>
+        <p>
+          TATE AI has a free plan and paid monthly plans. The current plans and prices are on the{' '}
+          <Link to="/pricing">pricing page</Link>. Prices are in US dollars and include any sales tax.
+        </p>
+        <p>
+          Payments are processed by Stripe, and purchases are sold through Link, a Stripe service
+          that acts as the seller of record. By subscribing you also agree to the terms Link shows
+          you at checkout.
+        </p>
+      </>
+    ),
+  },
+  {
+    heading: 'Automatic renewal',
+    body: (
+      <>
+        <strong>
+          Paid plans renew automatically every month, and you are charged the plan&apos;s price
+          each month to the payment method you gave at checkout, until you cancel.
+        </strong>{' '}
+        Your renewal date is shown on your dashboard, and your receipt for each charge comes by
+        email.
+      </>
+    ),
+  },
+  {
+    heading: 'Cancelling',
+    body: (
+      <>
+        <p>
+          You can cancel at any time, online, from <strong>Manage billing</strong> on your
+          dashboard. You can also cancel through your Link account, or by emailing{' '}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+        </p>
+        <p>
+          Cancelling stops all future charges. Your plan keeps working until the end of the month
+          you have already paid for, then moves to the free plan. Nothing you have uploaded or
+          written is deleted.
+        </p>
+      </>
+    ),
+  },
+  {
+    heading: 'Refunds',
+    body: (
+      <>
+        <p>
+          <strong>
+            We do not give refunds or credits for partial months or for unused allowance.
+          </strong>{' '}
+          When you cancel, you keep access until the end of the month you paid for instead.
+        </p>
+        <p>
+          Switching to a more expensive plan takes effect immediately, and you are charged only the
+          difference for the rest of the current month. Switching to a cheaper plan takes effect at
+          your next renewal.
+        </p>
+        <p>
+          This does not affect any right to a refund you have under the law where you live. If we
+          discontinue TATE AI entirely, we will refund the unused part of your current month.
+        </p>
+      </>
+    ),
+  },
+  {
+    heading: 'Price changes',
+    body: (
+      <>
+        We may change our prices. If the price of your plan goes up, we will email you at least 30
+        days before the new price applies to you. It takes effect from your next renewal after that
+        notice, and you can cancel before then to avoid paying it.
+      </>
+    ),
+  },
+  {
+    heading: 'Study allowance',
+    body: (
+      <>
+        <p>
+          Each plan includes an allowance of AI tutoring, measured by what your replies cost us to
+          produce over a rolling 30 days. Up to a quarter of it can be used in any one day. How far
+          it goes depends on how you use it: long documents, and replies with Deeper thinking
+          switched on, use more. Unused allowance does not carry over. Your dashboard shows how much
+          is left.
+        </p>
+        <p>
+          We may adjust allowances. If we reduce a paid plan&apos;s allowance significantly, we will
+          give you the same notice as for a price increase.
+        </p>
       </>
     ),
   },
@@ -259,8 +373,10 @@ export const terms = [
     heading: 'Ending your account',
     body: (
       <>
-        You can stop using TATE AI at any time and ask us to delete your account. We may suspend or
-        close accounts that breach these terms, and will tell you why where we reasonably can.
+        You can stop using TATE AI at any time and ask us to delete your account. Deleting your
+        account cancels any subscription, without a refund for the rest of the current month. We
+        may suspend or close accounts that breach these terms, and will tell you why where we
+        reasonably can; an account closed for a breach is not refunded.
       </>
     ),
   },

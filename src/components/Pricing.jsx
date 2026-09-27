@@ -304,6 +304,15 @@ const Pricing = () => {
             </TiltCard>
           ))}
         </RevealGroup>
+
+        {/* California's automatic renewal law wants these terms clear and next to
+            the point of purchase, not only in the Terms page. */}
+        <p className="pricing-terms">
+          Paid plans renew automatically each month at the price shown until you cancel. Cancel any
+          time online from Manage billing on your dashboard; your plan keeps working until the end of
+          the month you paid for. No refunds for partial months. By subscribing you agree to the{' '}
+          <Link to="/terms">Terms</Link>.
+        </p>
       </section>
 
       <Faq />
