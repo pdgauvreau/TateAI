@@ -198,13 +198,22 @@ a user can only ever add to their own usage, never remove it.
 
 ## Stripe configuration (lives in Stripe, not this repo)
 
-These were set up via the API in the sandbox and **must be recreated in live
-mode** before real billing — nothing here is version-controlled:
+`scripts/stripe-setup.mjs` creates all of this in any account, test or live, and
+is safe to re-run (existing prices, portal and webhook are skipped):
+
+```bash
+node --env-file=.env.stripe-live scripts/stripe-setup.mjs
+```
+
+A new webhook's signing secret lands in `.env.stripe-webhook` (gitignored).
 
 - **Products and prices**: TATE AI Student ($18/mo) and TATE AI Pro ($26/mo),
-  with lookup keys `tateai_student_monthly` and `tateai_pro_monthly`. The code
-  resolves prices by lookup key, so live prices need the same keys and no code
-  change.
+  one Product per plan, with lookup keys `tateai_student_monthly` and
+  `tateai_pro_monthly`. The code resolves prices by lookup key, so live prices
+  need the same keys and no code change. Prices are **tax-inclusive** and the
+  products carry tax code `txcd_10105001` (AI as a service, personal use), which
+  Managed Payments requires: Stripe is merchant of record and collects and
+  remits sales tax out of the advertised price.
 - **Customer portal**: invoice history, card updates, email updates, plan
   switching between the two prices with proration, cancel at period end, and
   **price decreases scheduled at period end** (`decreasing_item_amount`) so a

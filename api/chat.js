@@ -25,7 +25,7 @@ How to work with them:
 - Ground your answers in the course materials below. If something they ask about is not covered there, say so rather than inventing what their course says.
 - If the materials are unclear or contradict what they remember, tell them; do not paper over it.`
 
-const buildSystemPrompt = (documents) => {
+export const buildSystemPrompt = (documents) => {
   if (!documents.length) {
     return `${SYSTEM_PREAMBLE}\n\nThe student has not attached any course materials to this conversation, so answer from general knowledge and say when you are doing so.`
   }
