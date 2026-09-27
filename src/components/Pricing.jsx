@@ -314,7 +314,7 @@ const Pricing = () => {
 const faqs = [
   {
     q: 'How does the study allowance work?',
-    a: 'Each plan includes an amount of AI tutoring per rolling 30 days. How far it goes depends on what you study: a conversation over a long set of documents uses more of it than a quick question. Up to a quarter of the month can be used in any one day, so a single late night cannot use it all up. Your dashboard shows how much is left.',
+    a: 'Each plan includes an amount of AI tutoring per rolling 30 days. How far it goes depends on what you study: a conversation over a long set of documents uses more of it than a quick question. Switching on Deeper thinking, for a harder topic, uses a more capable model and draws on it several times faster. Up to a quarter of the month can be used in any one day, so a single late night cannot use it all up. Your dashboard shows how much is left.',
   },
   {
     q: 'What can it read?',

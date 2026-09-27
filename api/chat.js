@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Missing bearer token.' })
   }
 
-  const { conversationId, message } = req.body ?? {}
+  const { conversationId, message, deep } = req.body ?? {}
   if (!conversationId || !message?.trim()) {
     return res.status(400).json({ error: 'conversationId and a non-empty message are required.' })
   }
@@ -136,6 +136,8 @@ export default async function handler(req, res) {
       system: buildSystemPrompt(documents),
       messages: [...priorTurns, { role: 'user', content: message }],
       signal: req.signal,
+      // Strictly true, so a malformed body falls back to the cheaper tier.
+      deep: deep === true,
       onDelta: (chunk) => {
         assembled += chunk
         res.write(chunk)

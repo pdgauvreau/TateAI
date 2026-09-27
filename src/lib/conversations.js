@@ -69,7 +69,7 @@ export const deleteConversation = async (id) => {
  * `onDelta` receives text as it arrives so the UI can render the reply while it
  * is still being written. Resolves with the complete text once the stream ends.
  */
-export const sendMessage = async ({ conversationId, message, onDelta, signal }) => {
+export const sendMessage = async ({ conversationId, message, deep = false, onDelta, signal }) => {
   const { data: sessionData } = await supabase.auth.getSession()
   const accessToken = sessionData.session?.access_token
   if (!accessToken) return { error: 'Your session expired. Sign in again.' }
@@ -82,7 +82,7 @@ export const sendMessage = async ({ conversationId, message, onDelta, signal }) 
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ conversationId, message }),
+      body: JSON.stringify({ conversationId, message, deep }),
       signal,
     })
   } catch (networkError) {

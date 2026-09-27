@@ -1,12 +1,22 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { ProviderNotConfiguredError } from './index.js'
 
-const MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-opus-5'
-
-// Tutoring is a chat workload, so medium effort is the sensible default: it keeps
-// replies responsive and cheap without the flatness of low. Override per
-// deployment if answers feel shallow.
-const EFFORT = process.env.ANTHROPIC_EFFORT ?? 'medium'
+// Two tiers. Standard replies run on Sonnet: tutoring is a chat workload, and at
+// medium effort it is responsive and about 2.5x cheaper per token than Opus, so
+// the allowance goes further. "Deeper thinking" is the student's opt-in for a
+// harder topic: Opus at high effort, which reasons more before answering and
+// draws down the allowance correspondingly faster. Each is overridable per
+// deployment.
+const TIERS = {
+  standard: {
+    model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5',
+    effort: process.env.ANTHROPIC_EFFORT ?? 'medium',
+  },
+  deep: {
+    model: process.env.ANTHROPIC_DEEP_MODEL ?? 'claude-opus-5',
+    effort: process.env.ANTHROPIC_DEEP_EFFORT ?? 'high',
+  },
+}
 
 // US dollars per million tokens, which is the same number as micro-dollars per
 // token. Cache writes are the 5-minute TTL rate (1.25x input), the only TTL used
@@ -42,24 +52,25 @@ const meter = (model, usage) => {
   return { model, ...tokens, costMicros }
 }
 
-export const streamChat = async ({ system, messages, signal, onDelta }) => {
+export const streamChat = async ({ system, messages, signal, onDelta, deep = false }) => {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new ProviderNotConfiguredError(
       'ANTHROPIC_API_KEY is not set. Add it in your Vercel project settings (without a VITE_ prefix).'
     )
   }
 
+  const { model, effort } = deep ? TIERS.deep : TIERS.standard
   const client = new Anthropic()
 
   const stream = client.messages.stream(
     {
-      model: MODEL,
+      model,
       max_tokens: 4096,
       // The system prompt carries the course materials and is identical across
       // every turn of a conversation, so caching it turns a large repeated input
       // into a cheap cache read after the first message.
       system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-      output_config: { effort: EFFORT },
+      output_config: { effort },
       messages,
     },
     { signal }
@@ -74,13 +85,13 @@ export const streamChat = async ({ system, messages, signal, onDelta }) => {
     // A reply that fails or is cancelled partway was still billed for what it
     // used. The stream's snapshot holds the usage reported so far, so the caller
     // can meter it rather than letting an interrupted turn go free.
-    error.usage = meter(MODEL, stream.currentMessage?.usage)
+    error.usage = meter(model, stream.currentMessage?.usage)
     throw error
   }
 
   const usage = meter(final.model, final.usage)
 
-  // Opus 5 can decline a request outright; that arrives as HTTP 200, so it has to
+  // The model can decline a request outright; that arrives as HTTP 200, so it has to
   // be checked explicitly rather than caught.
   if (final.stop_reason === 'refusal') {
     const category = final.stop_details?.category ?? 'unspecified'

@@ -24,6 +24,7 @@ import {
 import './Conversation.css'
 
 const SPEAK_PREF_KEY = 'tateai:speak-replies'
+const DEEP_PREF_KEY = 'tateai:deeper-thinking'
 const VOICE_PREF_KEY = 'tateai:voice-uri'
 
 /**
@@ -54,6 +55,16 @@ const Conversation = () => {
     // Reading storage can throw in private windows, so never let it break the page.
     try {
       return localStorage.getItem(SPEAK_PREF_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+
+  // Off by default: it is the more expensive tier, so the student opts in for a
+  // hard topic rather than paying for it on every question.
+  const [deepThinking, setDeepThinking] = useState(() => {
+    try {
+      return localStorage.getItem(DEEP_PREF_KEY) === '1'
     } catch {
       return false
     }
@@ -136,6 +147,14 @@ const Conversation = () => {
     if (!speakReplies) cancelSpeech()
   }, [speakReplies])
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(DEEP_PREF_KEY, deepThinking ? '1' : '0')
+    } catch {
+      /* private window — the toggle still works for this session */
+    }
+  }, [deepThinking])
+
   const toggleDictation = useCallback(() => {
     if (listening) {
       dictationRef.current?.stop()
@@ -184,6 +203,7 @@ const Conversation = () => {
       const result = await sendMessage({
         conversationId: id,
         message: text,
+        deep: deepThinking,
         signal: controller.signal,
         onDelta: (chunk) => {
           setStreaming((prev) => prev + chunk)
@@ -273,47 +293,66 @@ const Conversation = () => {
             )}
           </div>
 
-          {synthesisSupported && (
-            <div className="chat-voice">
-              <button
-                type="button"
-                className={`speak-toggle ${speakReplies ? 'is-on' : ''}`}
-                role="switch"
-                aria-checked={speakReplies}
-                onClick={() => setSpeakReplies((v) => !v)}
-              >
-                <motion.span className="speak-knob" layout transition={spring.pop} />
-                <span className="speak-text">Read aloud</span>
-              </button>
+          <div className="chat-controls">
+            <button
+              type="button"
+              className={`speak-toggle ${deepThinking ? 'is-on' : ''}`}
+              role="switch"
+              aria-checked={deepThinking}
+              aria-describedby="deep-hint"
+              title="Uses a more capable model that reasons longer before answering. Replies are slower and use your allowance several times faster."
+              onClick={() => setDeepThinking((v) => !v)}
+            >
+              <motion.span className="speak-knob" layout transition={spring.pop} />
+              <span className="speak-text">Deeper thinking</span>
+            </button>
+            <span id="deep-hint" className="sr-only">
+              Uses a more capable model that reasons longer before answering. Replies are
+              slower and use your allowance several times faster.
+            </span>
 
-              {/* Only offered once reading aloud is on — a voice picker for
-                  speech nobody is hearing is a control that does nothing. */}
-              <AnimatePresence>
-                {speakReplies && voices.length > 0 && (
-                  <motion.label
-                    className="voice-pick"
-                    initial={{ opacity: 0, width: 0, marginLeft: 0 }}
-                    animate={{ opacity: 1, width: 'auto', marginLeft: 8 }}
-                    exit={{ opacity: 0, width: 0, marginLeft: 0 }}
-                    transition={{ duration: 0.3, ease: ease.out }}
-                  >
-                    <span className="sr-only">Voice</span>
-                    <select
-                      value={voiceURI}
-                      onChange={(e) => handleVoiceChange(e.target.value)}
+            {synthesisSupported && (
+              <div className="chat-voice">
+                <button
+                  type="button"
+                  className={`speak-toggle ${speakReplies ? 'is-on' : ''}`}
+                  role="switch"
+                  aria-checked={speakReplies}
+                  onClick={() => setSpeakReplies((v) => !v)}
+                >
+                  <motion.span className="speak-knob" layout transition={spring.pop} />
+                  <span className="speak-text">Read aloud</span>
+                </button>
+
+                {/* Only offered once reading aloud is on — a voice picker for
+                    speech nobody is hearing is a control that does nothing. */}
+                <AnimatePresence>
+                  {speakReplies && voices.length > 0 && (
+                    <motion.label
+                      className="voice-pick"
+                      initial={{ opacity: 0, width: 0, marginLeft: 0 }}
+                      animate={{ opacity: 1, width: 'auto', marginLeft: 8 }}
+                      exit={{ opacity: 0, width: 0, marginLeft: 0 }}
+                      transition={{ duration: 0.3, ease: ease.out }}
                     >
-                      <option value="">Browser default</option>
-                      {voices.map((voice) => (
-                        <option key={voice.voiceURI} value={voice.voiceURI}>
-                          {voice.name} ({voice.lang})
-                        </option>
-                      ))}
-                    </select>
-                  </motion.label>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
+                      <span className="sr-only">Voice</span>
+                      <select
+                        value={voiceURI}
+                        onChange={(e) => handleVoiceChange(e.target.value)}
+                      >
+                        <option value="">Browser default</option>
+                        {voices.map((voice) => (
+                          <option key={voice.voiceURI} value={voice.voiceURI}>
+                            {voice.name} ({voice.lang})
+                          </option>
+                        ))}
+                      </select>
+                    </motion.label>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
         </motion.header>
 
         {/* ------------------------------------------------------ thread --- */}

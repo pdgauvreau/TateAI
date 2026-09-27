@@ -4,8 +4,10 @@
  * This file must stay free of any vendor SDK calls — that is the whole point of
  * it. Each provider lives in its own adapter module and exposes one function:
  *
- *   streamChat({ system, messages, signal, onDelta }) -> Promise<{ text, usage }>
+ *   streamChat({ system, messages, signal, onDelta, deep }) -> Promise<{ text, usage }>
  *
+ *   deep     boolean, the student's "Deeper thinking" choice: a more capable,
+ *            more expensive model for this reply
  *   system   string
  *   messages [{ role: 'user' | 'assistant', content: string }]
  *   onDelta  (chunk: string) => void, called as text arrives

@@ -208,6 +208,12 @@ from the `usage_summary()` database function, because summing rows in the client
 would hit PostgREST's 1,000-row cap on exactly the heaviest users. The dashboard
 shows the share of the allowance used, not dollars.
 
+Replies run on Claude Sonnet 5 at medium effort. A "Deeper thinking" switch in
+the conversation header sends that student's replies to Claude Opus 5 at high
+effort instead; it is metered at Opus rates, so it draws the allowance down
+faster rather than needing a separate limit. Both are overridable with the
+`ANTHROPIC_*` variables in `.env.example`.
+
 When a model is added or its pricing changes, update `RATES` in the adapter; an
 unknown model is costed at the most expensive rate so it can never run free.
 
