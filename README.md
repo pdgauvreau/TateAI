@@ -207,7 +207,7 @@ node --env-file=.env.stripe-live scripts/stripe-setup.mjs
 
 A new webhook's signing secret lands in `.env.stripe-webhook` (gitignored).
 
-- **Products and prices**: TATE AI Student ($18/mo) and TATE AI Pro ($26/mo),
+- **Products and prices**: TATE AI Student ($21/mo) and TATE AI Pro ($29/mo),
   one Product per plan, with lookup keys `tateai_student_monthly` and
   `tateai_pro_monthly`. The code resolves prices by lookup key, so live prices
   need the same keys and no code change. Prices are **tax-inclusive** and the

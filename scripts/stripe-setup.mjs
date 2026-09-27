@@ -5,7 +5,9 @@
  * endpoint.
  *
  * Safe to re-run: anything that already exists (matched by lookup key or webhook
- * URL) is left alone. Works for test or live mode, depending on the key.
+ * URL) is left alone. If a plan's price in shared/plans.js no longer matches
+ * Stripe, a new Price replaces it and the old one is archived. Works for test or
+ * live mode, depending on the key.
  *
  *   node --env-file=.env.stripe-live scripts/stripe-setup.mjs
  *
@@ -52,13 +54,40 @@ console.log(`Setting up Stripe in ${mode} mode.`)
 
 // Products and prices.
 const priceIds = {}
+let pricesChanged = false
 for (const [plan, lookupKey] of Object.entries(PLAN_PRICE_KEYS)) {
   const { label, price } = PLAN_DISPLAY[plan]
   const existing = await stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 })
 
   if (existing.data.length) {
-    priceIds[plan] = { price: existing.data[0].id, product: existing.data[0].product }
-    console.log(`  ${label}: price ${lookupKey} already exists, skipped`)
+    const current = existing.data[0]
+    if (current.unit_amount === price * 100) {
+      priceIds[plan] = { price: current.id, product: current.product }
+      console.log(`  ${label}: $${price}/month (${lookupKey}) already exists, skipped`)
+      continue
+    }
+
+    // Prices are immutable, so a new amount is a new Price on the same Product.
+    // transfer_lookup_key moves the key over, so checkout picks up the new price
+    // with no code change. Existing subscribers stay on the old price until they
+    // are moved deliberately.
+    const replacement = await stripe.prices.create(
+      {
+        product: current.product,
+        currency: 'usd',
+        unit_amount: price * 100,
+        recurring: { interval: 'month' },
+        tax_behavior: 'inclusive',
+        lookup_key: lookupKey,
+        transfer_lookup_key: true,
+        nickname: `TATE AI ${label} monthly`,
+      },
+      { idempotencyKey: `tateai-setup-price-${plan}-${price}` }
+    )
+    await stripe.prices.update(current.id, { active: false })
+    priceIds[plan] = { price: replacement.id, product: current.product }
+    pricesChanged = true
+    console.log(`  ${label}: $${current.unit_amount / 100} -> $${price}/month (${lookupKey}); old price archived`)
     continue
   }
 
@@ -82,16 +111,29 @@ for (const [plan, lookupKey] of Object.entries(PLAN_PRICE_KEYS)) {
       lookup_key: lookupKey,
       nickname: `TATE AI ${label} monthly`,
     },
-    { idempotencyKey: `tateai-setup-price-${plan}` }
+    { idempotencyKey: `tateai-setup-price-${plan}-${price}` }
   )
   priceIds[plan] = { price: created.id, product: product.id }
   console.log(`  ${label}: created $${price}/month (${lookupKey})`)
 }
 
-// Customer portal. Only created when the account has no default yet, so a
-// configuration adjusted in the Dashboard is never overwritten.
+// One account is one seat, so a customer must not be able to buy more.
+const portalProducts = Object.values(priceIds).map(({ product, price }) => ({
+  product,
+  prices: [price],
+  adjustable_quantity: { enabled: false },
+}))
+
+// Customer portal. Created only when the account has no default yet, so settings
+// adjusted in the Dashboard are never overwritten. When a price changed, only the
+// plan-switching list is updated to offer the new prices.
 const portals = await stripe.billingPortal.configurations.list({ is_default: true, limit: 1 })
-if (portals.data.length) {
+if (portals.data.length && pricesChanged) {
+  await stripe.billingPortal.configurations.update(portals.data[0].id, {
+    features: { subscription_update: { products: portalProducts } },
+  })
+  console.log('  Customer portal: plan switching updated to the new prices')
+} else if (portals.data.length) {
   console.log('  Customer portal: default configuration exists, skipped')
 } else {
   await stripe.billingPortal.configurations.create({
@@ -117,12 +159,7 @@ if (portals.data.length) {
         enabled: true,
         default_allowed_updates: ['price'],
         proration_behavior: 'create_prorations',
-        // One account is one seat, so a customer must not be able to buy more.
-        products: Object.values(priceIds).map(({ product, price }) => ({
-          product,
-          prices: [price],
-          adjustable_quantity: { enabled: false },
-        })),
+        products: portalProducts,
         // Downgrades wait for renewal; upgrades apply immediately.
         schedule_at_period_end: { conditions: [{ type: 'decreasing_item_amount' }] },
       },

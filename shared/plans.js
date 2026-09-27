@@ -34,7 +34,7 @@ export const PLAN_PRICE_KEYS = {
 /** Display prices, kept beside the limits so the pricing page cannot drift. */
 export const PLAN_DISPLAY = {
   free: { label: 'Free', price: null },
-  student: { label: 'Student', price: 18 },
-  pro: { label: 'Pro', price: 26 },
+  student: { label: 'Student', price: 21 },
+  pro: { label: 'Pro', price: 29 },
   institution: { label: 'Institution', price: null },
 }
