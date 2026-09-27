@@ -6,8 +6,8 @@ Built with React 18, Vite, Framer Motion, and Supabase.
 
 ## Status
 
-The marketing site and the account foundation are in place. The product itself is not
-yet built — see [Roadmap](#roadmap).
+The product is built and live at https://tateai.app. Billing runs in Stripe test mode
+until the live-mode setup below is done — see [Before launch](#before-launch).
 
 | Area | Status |
 | --- | --- |
@@ -17,8 +17,8 @@ yet built — see [Roadmap](#roadmap).
 | PDF upload and text extraction | Done |
 | AI conversations | Done |
 | Voice (dictation + spoken replies) | Done |
-| Payments | Not started |
-| Privacy Policy / Terms | Drafted — needs legal review and placeholders filled |
+| Payments (Stripe checkout, portal, webhooks) | Done — test mode |
+| Privacy Policy / Terms | Drafted — needs legal review |
 
 ## Getting started
 
@@ -170,13 +170,15 @@ conversation and as a cheap cache read on every turn after.
 
 `src/pages/legalContent.jsx` holds the Privacy Policy and Terms. They describe the
 service's actual data flows accurately, but they are **not legal advice and have
-not been reviewed by a lawyer**. Two placeholders must be filled in first:
+not been reviewed by a lawyer**. `OPERATOR` and `STATE` at the top of the file
+name the operator and the governing-law state.
 
-- `OPERATOR` — your full legal name
-- `STATE` — your state, for the governing-law clause
-
-`support@tateai.app` must also receive mail before these go live; the policy
-points people there to request account deletion.
+`support@tateai.app` receives mail through Forward Email's free plan, configured
+entirely by DNS records on the domain (MX `mx1`/`mx2.forwardemail.net`, a
+`forward-email=` TXT record naming the destination, and SPF). There is no account:
+to change the destination, edit that TXT record with `vercel dns`. On the free plan
+the destination address is publicly visible in DNS; the policy points people there
+to request account deletion.
 
 Set a spend cap in the Anthropic console as a backstop — the app-level limits
 below bound normal use, but only the provider can stop spend unconditionally.
@@ -249,7 +251,7 @@ keyed off that first path segment.
 3. ~~Document upload and text extraction~~
 4. ~~AI conversations over uploaded documents~~
 5. ~~Voice input and output~~
-6. Payments
+6. ~~Payments~~ (test mode; live mode pending)
 7. Legal pages and honest marketing copy — drafted, pending review
 
 ## License
