@@ -6,7 +6,6 @@ import SplitText from '../components/motion/SplitText'
 import { AuthAside, AuthField, AuthMessage, AuthSubmit } from '../components/AuthParts'
 import { useAuth } from '../context/AuthContext'
 import { ease } from '../motion/tokens'
-import { PLAN_LIMITS } from '../../shared/plans'
 import './Auth.css'
 
 const Signup = () => {
@@ -136,7 +135,7 @@ const Signup = () => {
         <AuthAside
           title="Nobody is awake at eleven to be talked at. That is the gap."
           lines={[
-            `${PLAN_LIMITS.free} messages a day, free, no card`,
+            'Free to try, no card needed',
             'PDFs up to 25 MB — slides, briefs, past papers',
             'Export everything, or delete it, whenever',
           ]}

@@ -8,7 +8,7 @@ import { Magnetic, TiltCard } from './motion/Interactive'
 import { useAuth } from '../context/AuthContext'
 import { startCheckout } from '../lib/billing'
 import { ease, liftIn, spring } from '../motion/tokens'
-import { PLAN_DISPLAY, PLAN_LIMITS } from '../../shared/plans'
+import { PLAN_DISPLAY, allowanceRatio } from '../../shared/plans'
 import './Pricing.css'
 
 /**
@@ -61,7 +61,7 @@ const Pricing = () => {
       cadence: 'forever',
       description: 'Enough to find out whether talking through your notes suits you.',
       features: [
-        `${PLAN_LIMITS.free} messages a day`,
+        'A monthly study allowance to try it out',
         'PDF upload up to 25 MB a file',
         'Voice in and voice out',
         'Full data export',
@@ -75,9 +75,7 @@ const Pricing = () => {
       cadence: '/month',
       description: 'For regular sessions right through the semester.',
       features: [
-        `${PLAN_LIMITS.student} messages a day — ${Math.round(
-          PLAN_LIMITS.student / PLAN_LIMITS.free
-        )}× the free plan`,
+        `About ${Math.round(allowanceRatio('student', 'free'))}× the free allowance`,
         'Everything in Free',
         'Cancel any time, keeps working until renewal',
       ],
@@ -90,9 +88,7 @@ const Pricing = () => {
       cadence: '/month',
       description: 'Exam season, several courses at once, long sittings.',
       features: [
-        `${PLAN_LIMITS.pro} messages a day — ${Math.round(
-          PLAN_LIMITS.pro / PLAN_LIMITS.student
-        )}× Student`,
+        `${Math.round((allowanceRatio('pro', 'student') - 1) * 100)}% more allowance than Student`,
         'Everything in Student',
         'Upgrades apply immediately, downgrades at renewal',
       ],
@@ -137,17 +133,16 @@ const Pricing = () => {
 
         <Reveal variant="up" delay={0.7}>
           <p className="pricing-sub">
-            The free plan is a real plan, not a trial. Paid tiers exist for people
-            who hit the daily cap, which mostly happens in the last week before an
-            exam.
+            Start free, no card. Every plan comes with a study allowance; paid
+            plans give you a much bigger one for regular sessions and exam season.
           </p>
         </Reveal>
 
         <Reveal variant="up" delay={0.85}>
           <p className="pricing-flag">
             <span className="flag-dot" />
-            Early access — billing is not switched on yet. Creating an account is
-            free, and these are the prices we intend to charge when it opens.
+            Prices include sales tax. Cancel any time — your plan keeps working
+            until the end of the month you paid for.
           </p>
         </Reveal>
       </section>
@@ -318,8 +313,8 @@ const Pricing = () => {
 
 const faqs = [
   {
-    q: 'What does it cost right now?',
-    a: 'Nothing. TATE AI is in early access and billing is not switched on. You will hear from us well before that changes.',
+    q: 'How does the study allowance work?',
+    a: 'Each plan includes an amount of AI tutoring per rolling 30 days. How far it goes depends on what you study: a conversation over a long set of documents uses more of it than a quick question. Up to a quarter of the month can be used in any one day, so a single late night cannot use it all up. Your dashboard shows how much is left.',
   },
   {
     q: 'What can it read?',

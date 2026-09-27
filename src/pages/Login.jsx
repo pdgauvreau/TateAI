@@ -138,7 +138,7 @@ const Login = () => {
           lines={[
             'Your documents stay private to your account',
             'Conversations pick up where you stopped',
-            '25 messages a day on the free plan',
+            'Free to try, no card needed',
           ]}
         />
       </div>

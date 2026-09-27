@@ -12,7 +12,6 @@ import SplitText from './motion/SplitText'
 import { Magnetic, Waveform } from './motion/Interactive'
 import { useContainerPointer } from './motion/Chrome'
 import { ease, spring } from '../motion/tokens'
-import { PLAN_LIMITS } from '../../shared/plans'
 import './Hero.css'
 
 /**
@@ -163,7 +162,7 @@ const Hero = () => {
             animate="show"
           >
             {[
-              { k: `${PLAN_LIMITS.free} messages a day`, v: 'Free, no card' },
+              { k: 'Free to try', v: 'No card needed' },
               { k: '25 MB PDFs', v: 'Slides, briefs, past papers' },
               { k: 'Voice in, voice out', v: 'Talk, and be talked back to' },
             ].map((fact) => (

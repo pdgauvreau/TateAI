@@ -4,12 +4,16 @@
  * This file must stay free of any vendor SDK calls — that is the whole point of
  * it. Each provider lives in its own adapter module and exposes one function:
  *
- *   streamChat({ system, messages, signal, onDelta }) -> Promise<{ text }>
+ *   streamChat({ system, messages, signal, onDelta }) -> Promise<{ text, usage }>
  *
  *   system   string
  *   messages [{ role: 'user' | 'assistant', content: string }]
  *   onDelta  (chunk: string) => void, called as text arrives
- *   returns  the full assembled text, for persisting once the stream ends
+ *   returns  the full assembled text, for persisting once the stream ends, and
+ *            usage: { model, inputTokens, outputTokens, cacheReadTokens,
+ *            cacheWriteTokens, costMicros } for metering (costMicros is US
+ *            dollars x 1e6). An error thrown after the provider started billing
+ *            carries the usage so far as error.usage.
  *
  * To add a provider: write an adapter with that signature, register it below,
  * and set AI_PROVIDER to its key. Nothing else in the codebase needs to change.

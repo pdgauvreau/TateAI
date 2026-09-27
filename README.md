@@ -185,10 +185,31 @@ below bound normal use, but only the provider can stop spend unconditionally.
 
 ## Usage limits
 
-`/api/chat` enforces a per-user cap over a rolling 24-hour window, from
-`shared/plans.js` (free 25, student 250, pro 1000, institution unlimited). That
-file is imported by both the API and the dashboard so the number shown can never
-drift from the number enforced.
+Usage is limited by **AI cost, not message count**. A message costs several
+times more with a long document attached or a cold prompt cache, so a message
+cap cannot bound spend.
+
+After every reply, `/api/chat` records the token counts the provider reported
+and the exact cost (`cost_micros`, US dollars x 1e6, priced in
+`api/_lib/ai/anthropic.js`). Before each reply it checks two rolling windows
+against the plan's allowance, from `shared/plans.js`:
+
+| Plan | 30-day allowance | 24-hour cap |
+| --- | --- | --- |
+| Free | $0.25 | 25% of that |
+| Student | 50% of the price after 10% tax headroom ($9.55 at $21) | 25% |
+| Pro | same rule ($13.18 at $29) | 25% |
+| Institution | unmetered | — |
+
+Paid allowances are derived from the prices, so changing a price updates the
+allowance. The daily cap stops one sitting from using the whole month. A reply
+that fails or is cancelled partway still records what it was billed. Totals come
+from the `usage_summary()` database function, because summing rows in the client
+would hit PostgREST's 1,000-row cap on exactly the heaviest users. The dashboard
+shows the share of the allowance used, not dollars.
+
+When a model is added or its pricing changes, update `RATES` in the adapter; an
+unknown model is costed at the most expensive rate so it can never run free.
 
 Usage is metered in `usage_events` rather than counted from `messages`: counting
 messages would mean joining through `conversations` to reach a user id, and a

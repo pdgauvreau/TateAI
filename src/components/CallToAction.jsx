@@ -5,7 +5,6 @@ import Reveal from './motion/Reveal'
 import SplitText from './motion/SplitText'
 import { Magnetic } from './motion/Interactive'
 import { ease, spring } from '../motion/tokens'
-import { PLAN_LIMITS } from '../../shared/plans'
 import './CallToAction.css'
 
 /**
@@ -51,8 +50,7 @@ const CallToAction = () => {
 
             <Reveal variant="up" delay={0.12}>
               <p className="cta-sub">
-                That is the useful part. {PLAN_LIMITS.free} messages a day on the free
-                plan, no card, and your data exports in one click if you decide this
+                That is the useful part. The free plan needs no card, and your data exports in one click if you decide this
                 is not for you.
               </p>
             </Reveal>

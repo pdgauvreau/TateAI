@@ -10,7 +10,7 @@ import { Counter, ProgressRing } from '../components/motion/Interactive'
 import { useAuth } from '../context/AuthContext'
 import { listDocuments } from '../lib/documents'
 import { listConversations, getUsage } from '../lib/conversations'
-import { limitForPlan } from '../../shared/plans'
+import { budgetForPlan } from '../../shared/plans'
 import { exportAllData } from '../lib/exportData'
 import { openBillingPortal } from '../lib/billing'
 import { ease, spring } from '../motion/tokens'
@@ -29,7 +29,7 @@ const Dashboard = () => {
   const [conversations, setConversations] = useState([])
   const [conversationsLoading, setConversationsLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
-  const [used, setUsed] = useState(null)
+  const [usage, setUsage] = useState(null)
   const [openingPortal, setOpeningPortal] = useState(false)
   const [confirmSlow, setConfirmSlow] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -105,8 +105,8 @@ const Dashboard = () => {
     if (!user) return
     refreshDocuments()
     refreshConversations()
-    getUsage(user.id).then((r) => {
-      if (!r.error) setUsed(r.used)
+    getUsage().then((r) => {
+      if (!r.error) setUsage(r)
     })
   }, [user, refreshDocuments, refreshConversations])
 
@@ -119,8 +119,12 @@ const Dashboard = () => {
   }
 
   const displayName = profile?.full_name?.trim() || user?.email?.split('@')[0] || 'there'
-  const limit = profile ? limitForPlan(profile.plan) : null
-  const hasMeter = profile && used !== null && limit !== null
+  const budget = profile ? budgetForPlan(profile.plan) : null
+  const hasMeter = Boolean(profile && usage && budget)
+  // Shown as a share of the allowance rather than dollars: the student is buying
+  // study time, and what they need at a glance is how much is left.
+  const monthShare = hasMeter ? Math.min(1, usage.monthUsed / budget.monthly) : 0
+  const dayCapped = hasMeter && usage.dayUsed >= budget.daily
   const readyDocs = documents.filter((d) => d.status === 'ready').length
 
   return (
@@ -239,18 +243,20 @@ const Dashboard = () => {
                 transition={{ duration: 0.6, ease: ease.out, delay: 0.25 }}
               >
                 <ProgressRing
-                  value={used / limit}
+                  value={monthShare}
                   size={84}
-                  label={`${used} of ${limit} messages used today`}
+                  label={`${Math.round(monthShare * 100)}% of this month's study allowance used`}
                 >
-                  <Counter to={Math.round((used / limit) * 100)} suffix="%" />
+                  <Counter to={Math.round(monthShare * 100)} suffix="%" />
                 </ProgressRing>
                 <div className="meter-copy">
-                  <span className="meter-label">Today’s messages</span>
+                  <span className="meter-label">Study allowance</span>
                   <span className="meter-value">
-                    <Counter to={used} /> / {limit}
+                    <Counter to={Math.round(monthShare * 100)} suffix="%" /> used
                   </span>
-                  <span className="meter-note">Rolling 24 hours</span>
+                  <span className="meter-note">
+                    {dayCapped ? 'Today’s share used up · more frees up within 24 hours' : 'Rolling 30 days'}
+                  </span>
                 </div>
               </motion.div>
             )}

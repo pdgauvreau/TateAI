@@ -1,17 +1,13 @@
 import { supabase } from './supabase'
 
-const WINDOW_HOURS = 24
-
-/** Reads this user's usage in the rolling window. RLS scopes it to their rows. */
-export const getUsage = async (userId) => {
-  const windowStart = new Date(Date.now() - WINDOW_HOURS * 3600 * 1000).toISOString()
-  const { count, error } = await supabase
-    .from('usage_events')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .gte('created_at', windowStart)
+/**
+ * Reads this user's AI spend over the last 30 days and 24 hours, in micro-dollars.
+ * Summed in the database (see migration 0006), and scoped to the caller by RLS.
+ */
+export const getUsage = async () => {
+  const { data, error } = await supabase.rpc('usage_summary').single()
   if (error) return { error: error.message }
-  return { used: count ?? 0 }
+  return { monthUsed: Number(data.month_micros), dayUsed: Number(data.day_micros) }
 }
 
 export const listConversations = async () =>
@@ -103,7 +99,7 @@ export const sendMessage = async ({ conversationId, message, onDelta, signal }) 
     // UI can present it as a quota notice rather than a failure.
     if (response.status === 429) {
       return {
-        error: payload.error ?? 'You have reached your message limit for today.',
+        error: payload.error ?? 'You have reached your usage limit for now.',
         rateLimited: true,
         resetAt: payload.resetAt ?? null,
       }

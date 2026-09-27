@@ -1,20 +1,27 @@
 /**
- * Per-user usage limits.
+ * Per-user usage limits, metered in AI cost.
  *
- * A rolling 24-hour window rather than a calendar day: it avoids a midnight
- * stampede, works the same in every timezone, and lets us tell someone exactly
- * when their next message frees up instead of naming a reset hour that means
- * nothing to them.
+ * Two rolling windows, 30 days and 24 hours, rather than calendar periods: they
+ * avoid a midnight or first-of-the-month stampede, work the same in every
+ * timezone, and let us say when allowance next frees up instead of naming a
+ * reset time that means nothing to the student. The daily window caps how much
+ * of the month one sitting can use.
  */
 
-export { PLAN_LIMITS, WINDOW_HOURS, limitForPlan } from '../../shared/plans.js'
-import { limitForPlan, WINDOW_HOURS } from '../../shared/plans.js'
+import { budgetForPlan } from '../../shared/plans.js'
+
+const DAY_MS = 24 * 3600 * 1000
+const MONTH_MS = 30 * DAY_MS
 
 /**
- * Checks whether this user may send another message.
+ * Checks whether this user may start another reply.
  *
- * Runs on the caller's own token, so it counts only their rows under RLS. Returns
- * { allowed, limit, used, remaining, resetAt }.
+ * Runs on the caller's own token, so it sees only their rows under RLS. Returns
+ * { allowed, budget, monthUsed, dayUsed, window, resetAt } with amounts in
+ * micro-dollars; window names the limit that was hit ('day' or 'month').
+ *
+ * A reply's cost is only known once it finishes, so a user just under the limit
+ * can go over by one reply. That overshoot is bounded by a single message.
  */
 export const checkUsage = async (supabase, userId) => {
   const { data: profile } = await supabase
@@ -23,56 +30,67 @@ export const checkUsage = async (supabase, userId) => {
     .eq('id', userId)
     .single()
 
-  const limit = limitForPlan(profile?.plan ?? 'free')
-  if (limit === null) {
-    return { allowed: true, limit: null, used: 0, remaining: null, resetAt: null }
+  const budget = budgetForPlan(profile?.plan ?? 'free')
+  if (budget === null) {
+    return { allowed: true, budget: null, monthUsed: 0, dayUsed: 0, window: null, resetAt: null }
   }
 
-  const windowStart = new Date(Date.now() - WINDOW_HOURS * 3600 * 1000).toISOString()
+  const { data, error } = await supabase.rpc('usage_summary').single()
 
-  const { count, error } = await supabase
-    .from('usage_events')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .gte('created_at', windowStart)
-
-  // Fail open on a counting error rather than locking a paying user out of a
+  // Fail open on a metering error rather than locking a paying user out of a
   // service that is otherwise working. The provider-side spend cap is the
   // backstop for the case where this is failing persistently.
   if (error) {
-    return { allowed: true, limit, used: 0, remaining: limit, resetAt: null, degraded: true }
+    return { allowed: true, budget, monthUsed: 0, dayUsed: 0, window: null, resetAt: null, degraded: true }
   }
 
-  const used = count ?? 0
-  if (used < limit) {
-    return { allowed: true, limit, used, remaining: limit - used, resetAt: null }
+  const monthUsed = Number(data.month_micros)
+  const dayUsed = Number(data.day_micros)
+
+  // The month is checked first: if both are exhausted, the day freeing up does
+  // not help, so the month's reset is the honest answer.
+  if (monthUsed >= budget.monthly) {
+    return { allowed: false, budget, monthUsed, dayUsed, window: 'month', resetAt: freesAt(data.month_oldest, MONTH_MS) }
   }
-
-  // At the limit: the oldest event still inside the window is the one whose
-  // expiry frees the next slot.
-  const { data: oldest } = await supabase
-    .from('usage_events')
-    .select('created_at')
-    .eq('user_id', userId)
-    .gte('created_at', windowStart)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .single()
-
-  const resetAt = oldest
-    ? new Date(new Date(oldest.created_at).getTime() + WINDOW_HOURS * 3600 * 1000).toISOString()
-    : null
-
-  return { allowed: false, limit, used, remaining: 0, resetAt }
+  if (dayUsed >= budget.daily) {
+    return { allowed: false, budget, monthUsed, dayUsed, window: 'day', resetAt: freesAt(data.day_oldest, DAY_MS) }
+  }
+  return { allowed: true, budget, monthUsed, dayUsed, window: null, resetAt: null }
 }
 
-export const recordUsage = (supabase, userId) =>
-  supabase.from('usage_events').insert({ user_id: userId, kind: 'chat_message' })
+// The oldest event still inside a window is the first to age out of it, which is
+// when some allowance comes back.
+const freesAt = (oldest, windowMs) =>
+  oldest ? new Date(new Date(oldest).getTime() + windowMs).toISOString() : null
+
+/**
+ * Records one reply's usage. usage is the provider-neutral shape from
+ * streamChat; a missing usage (the request failed before the provider billed
+ * anything) records a zero-cost event so the attempt is still visible.
+ */
+export const recordUsage = (supabase, userId, usage) =>
+  supabase.from('usage_events').insert({
+    user_id: userId,
+    kind: 'chat_message',
+    model: usage?.model ?? null,
+    input_tokens: usage?.inputTokens ?? 0,
+    output_tokens: usage?.outputTokens ?? 0,
+    cache_read_tokens: usage?.cacheReadTokens ?? 0,
+    cache_write_tokens: usage?.cacheWriteTokens ?? 0,
+    cost_micros: usage?.costMicros ?? 0,
+  })
 
 export const describeReset = (resetAt) => {
   if (!resetAt) return 'shortly'
   const minutes = Math.max(1, Math.round((new Date(resetAt) - Date.now()) / 60000))
   if (minutes < 60) return `in ${minutes} minute${minutes === 1 ? '' : 's'}`
   const hours = Math.round(minutes / 60)
-  return `in about ${hours} hour${hours === 1 ? '' : 's'}`
+  if (hours < 48) return `in about ${hours} hour${hours === 1 ? '' : 's'}`
+  return `in about ${Math.round(hours / 24)} days`
 }
+
+/** The student-facing message for a refused turn. */
+export const limitMessage = ({ window, resetAt }) =>
+  window === 'month'
+    ? `You've used this month's study allowance. More frees up ${describeReset(resetAt)}, or you can upgrade your plan for a larger one.`
+    : `You've used today's share of your allowance, so the rest of your month isn't used up in one sitting. More frees up ${describeReset(resetAt)}.`

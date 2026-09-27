@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { streamChat, ProviderNotConfiguredError } from './_lib/ai/index.js'
-import { checkUsage, recordUsage, describeReset } from './_lib/limits.js'
+import { checkUsage, recordUsage, limitMessage } from './_lib/limits.js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY
@@ -82,9 +82,8 @@ export default async function handler(req, res) {
   if (!usage.allowed) {
     res.setHeader('Retry-After', String(Math.max(60, Math.round((new Date(usage.resetAt) - Date.now()) / 1000))))
     return res.status(429).json({
-      error: `You've used all ${usage.limit} messages for today. You can send another ${describeReset(usage.resetAt)}.`,
-      limit: usage.limit,
-      used: usage.used,
+      error: limitMessage(usage),
+      window: usage.window,
       resetAt: usage.resetAt,
     })
   }
@@ -121,11 +120,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: userMessageError.message })
   }
 
-  // Counted here rather than after the reply: the cost is incurred the moment we
-  // call the provider, so a request that fails mid-stream still spent money and
-  // still counts.
-  await recordUsage(supabase, user.id)
-
   const priorTurns = (history ?? [])
     .filter((turn) => turn.role !== 'system')
     .slice(-HISTORY_TURNS)
@@ -138,7 +132,7 @@ export default async function handler(req, res) {
   let assembled = ''
 
   try {
-    const { text } = await streamChat({
+    const { text, usage: spent } = await streamChat({
       system: buildSystemPrompt(documents),
       messages: [...priorTurns, { role: 'user', content: message }],
       signal: req.signal,
@@ -147,6 +141,10 @@ export default async function handler(req, res) {
         res.write(chunk)
       },
     })
+
+    // Recorded first, before anything else that could fail: the money is already
+    // spent, so the allowance has to reflect it whatever happens next.
+    await recordUsage(supabase, user.id, spent)
 
     await supabase
       .from('messages')
@@ -160,6 +158,11 @@ export default async function handler(req, res) {
 
     return res.end()
   } catch (error) {
+    // A reply that failed or was cancelled partway was still billed for what it
+    // used; the adapter attaches that as error.usage. With no usage at all the
+    // request never reached the model, so there is nothing to meter.
+    if (error?.usage) await recordUsage(supabase, user.id, error.usage)
+
     const message =
       error instanceof ProviderNotConfiguredError
         ? error.message
