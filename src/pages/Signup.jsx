@@ -24,8 +24,11 @@ const Signup = () => {
     setError('')
     setNotice('')
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
+    // Mirrors the password policy set in Supabase (Authentication > Sign In /
+    // Providers > Email), so a student gets a plain explanation here instead of
+    // the auth server's rejection. Keep the two in step.
+    if (password.length < 8 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+      setError('Password must be at least 8 characters and include an uppercase letter, a lowercase letter, and a number.')
       return
     }
 
@@ -114,7 +117,7 @@ const Signup = () => {
               required
               minLength={8}
               autoComplete="new-password"
-              hint="At least 8 characters."
+              hint="At least 8 characters, with an uppercase letter, a lowercase letter, and a number."
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={submitting}
