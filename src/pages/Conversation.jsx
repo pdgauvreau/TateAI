@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import DotBackground from '../components/DotBackground'
+import MessageContent from '../components/MessageContent'
 import { ThinkingDots, Waveform } from '../components/motion/Interactive'
+import { useAuth } from '../context/AuthContext'
 import { ease, spring } from '../motion/tokens'
 import {
   getConversation,
@@ -10,6 +12,7 @@ import {
   listMessages,
   sendMessage,
 } from '../lib/conversations'
+import { ACCEPT, uploadDocument, validateFile } from '../lib/documents'
 import {
   cancelSpeech,
   listVoices,
@@ -27,6 +30,41 @@ const SPEAK_PREF_KEY = 'tateai:speak-replies'
 const DEEP_PREF_KEY = 'tateai:deeper-thinking'
 const VOICE_PREF_KEY = 'tateai:voice-uri'
 
+// Reply modes. Each changes how the tutor answers the next message; the
+// instruction behind it lives on the server. `ask` is what gets sent when the
+// student picks a mode and sends without typing anything.
+const MODES = [
+  {
+    id: 'hint',
+    label: 'Hint',
+    tag: 'Asked for a hint',
+    ask: 'Can I have a hint?',
+    placeholder: 'Where are you stuck? Or just send for a nudge.',
+  },
+  {
+    id: 'example',
+    label: 'Similar example',
+    tag: 'Asked for a similar example',
+    ask: 'Can you show me a similar example?',
+    placeholder: 'Paste the problem, or send to use the one you are on.',
+  },
+  {
+    id: 'check',
+    label: 'Check my work',
+    tag: 'Asked for a check',
+    ask: null,
+    placeholder: 'Paste your steps, or attach a photo of your working.',
+  },
+]
+
+const modeById = (id) => MODES.find((mode) => mode.id === id)
+
+const PaperclipIcon = () => (
+  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M20.5 11.5 12.4 19.6a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" />
+  </svg>
+)
+
 /**
  * The conversation view.
  *
@@ -39,6 +77,7 @@ const VOICE_PREF_KEY = 'tateai:voice-uri'
  */
 const Conversation = () => {
   const { id } = useParams()
+  const { user } = useAuth()
 
   const [conversation, setConversation] = useState(null)
   const [documents, setDocuments] = useState([])
@@ -49,6 +88,14 @@ const Conversation = () => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [composerFocus, setComposerFocus] = useState(false)
+
+  // The reply mode for the next message, or null for an ordinary one.
+  const [intent, setIntent] = useState(null)
+  // A file attached from the composer: { status: 'reading' | 'ready', title,
+  // documentId }. It is read and linked to the conversation before sending, so
+  // the tutor has its text by the time the message arrives.
+  const [attachment, setAttachment] = useState(null)
+  const attachInputRef = useRef(null)
 
   const [listening, setListening] = useState(false)
   const [speakReplies, setSpeakReplies] = useState(() => {
@@ -176,6 +223,34 @@ const Conversation = () => {
     if (dictationRef.current) setListening(true)
   }, [listening])
 
+  const handleAttach = useCallback(
+    async (fileList) => {
+      const file = fileList?.[0]
+      if (attachInputRef.current) attachInputRef.current.value = ''
+      if (!file || !user) return
+
+      const invalid = validateFile(file)
+      if (invalid) {
+        setError(invalid)
+        return
+      }
+
+      setError('')
+      setAttachment({ status: 'reading', title: file.name })
+      const result = await uploadDocument({ file, userId: user.id, conversationId: id })
+
+      if (result.error) {
+        setAttachment(null)
+        setError(result.error)
+        return
+      }
+
+      setAttachment({ status: 'ready', title: result.title, documentId: result.documentId })
+      setDocuments((prev) => (prev.includes(result.title) ? prev : [...prev, result.title]))
+    },
+    [id, user]
+  )
+
   // Keep the newest turn in view as the reply streams in.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -184,18 +259,48 @@ const Conversation = () => {
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault()
-      const text = draft.trim()
-      if (!text || busy) return
+      if (busy || attachment?.status === 'reading') return
+
+      const typed = draft.trim()
+      const mode = modeById(intent)
+      const attached = attachment?.status === 'ready' ? attachment : null
+
+      if (mode?.id === 'check' && !typed && !attached) {
+        setError('Paste your working, or attach a photo of it, and then send.')
+        return
+      }
+
+      // With nothing typed, a mode or an attachment still says what is wanted.
+      const text =
+        typed ||
+        (mode?.id === 'check' && attached ? `Can you check my work in "${attached.title}"?` : null) ||
+        mode?.ask ||
+        (attached ? `I've attached "${attached.title}".` : '')
+      if (!text) return
+
+      const sentIntent = intent
+      const sentAttachment = attached
 
       setError('')
       setDraft('')
+      setIntent(null)
+      setAttachment(null)
       setBusy(true)
       setStreaming('')
       spokenBufferRef.current = ''
       cancelSpeech()
       // Show the student's own turn immediately; the server persists the
       // authoritative copy.
-      setMessages((prev) => [...prev, { id: `local-${Date.now()}`, role: 'user', content: text }])
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `local-${Date.now()}`,
+          role: 'user',
+          content: text,
+          intent: sentIntent,
+          attachment: sentAttachment ? { title: sentAttachment.title } : null,
+        },
+      ])
 
       const controller = new AbortController()
       abortRef.current = controller
@@ -204,6 +309,8 @@ const Conversation = () => {
         conversationId: id,
         message: text,
         deep: deepThinking,
+        intent: sentIntent,
+        documentId: sentAttachment?.documentId ?? null,
         signal: controller.signal,
         onDelta: (chunk) => {
           setStreaming((prev) => prev + chunk)
@@ -232,7 +339,9 @@ const Conversation = () => {
         // Hitting the cap is not a failure to retry — put their message back in
         // the box rather than losing it, and drop the optimistic turn.
         if (result.rateLimited) {
-          setDraft(text)
+          setDraft(typed)
+          setIntent(sentIntent)
+          setAttachment(sentAttachment)
           setMessages((prev) => prev.filter((m) => !String(m.id).startsWith('local-')))
         }
         return
@@ -245,8 +354,14 @@ const Conversation = () => {
         ])
       }
     },
-    [draft, busy, id]
+    [draft, busy, id, intent, attachment, deepThinking]
   )
+
+  const activeMode = modeById(intent)
+  const canSend =
+    !busy &&
+    attachment?.status !== 'reading' &&
+    Boolean(draft.trim() || attachment?.status === 'ready' || (activeMode && activeMode.ask))
 
   return (
     <div className="chat-page">
@@ -396,7 +511,7 @@ const Conversation = () => {
               <p className="empty-body">
                 Explain a concept from your materials in your own words, roughly. It
                 will push back where it needs to — that is the part that does the
-                work.
+                work. Stuck on a problem? Snap a photo of it with the camera button.
               </p>
             </motion.div>
           )}
@@ -419,7 +534,24 @@ const Conversation = () => {
                 transition={spring.glide}
               >
                 <span className="turn-who">{msg.role === 'user' ? 'You' : 'TATE AI'}</span>
-                <p className="turn-text">{msg.content}</p>
+                {msg.role === 'user' && (msg.intent || msg.attachment) && (
+                  <span className="turn-tags">
+                    {msg.intent && modeById(msg.intent) && (
+                      <span className="turn-tag">{modeById(msg.intent).tag}</span>
+                    )}
+                    {msg.attachment?.title && (
+                      <span className="turn-tag">
+                        <PaperclipIcon />
+                        {msg.attachment.title}
+                      </span>
+                    )}
+                  </span>
+                )}
+                {msg.role === 'assistant' ? (
+                  <MessageContent text={msg.content} />
+                ) : (
+                  <p className="turn-text">{msg.content}</p>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
@@ -433,10 +565,7 @@ const Conversation = () => {
               transition={spring.glide}
             >
               <span className="turn-who">TATE AI</span>
-              <p className="turn-text">
-                {streaming}
-                <span className="caret" aria-hidden="true" />
-              </p>
+              <MessageContent text={streaming} streaming />
             </motion.div>
           )}
 
@@ -471,6 +600,56 @@ const Conversation = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: ease.out, delay: 0.1 }}
         >
+          <div className="composer-top">
+            <div className="modes" role="group" aria-label="Reply mode">
+              {MODES.map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  className={`mode-chip ${intent === mode.id ? 'is-on' : ''}`}
+                  aria-pressed={intent === mode.id}
+                  onClick={() => setIntent((current) => (current === mode.id ? null : mode.id))}
+                  disabled={busy}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+
+            <AnimatePresence>
+              {attachment && (
+                <motion.span
+                  className={`attach-chip ${attachment.status === 'reading' ? 'is-reading' : ''}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={spring.snap}
+                >
+                  {attachment.status === 'reading' ? (
+                    <span className="auth-spinner attach-spinner" aria-hidden="true" />
+                  ) : (
+                    <PaperclipIcon />
+                  )}
+                  <span className="attach-name">
+                    {attachment.status === 'reading' ? `Reading ${attachment.title}…` : attachment.title}
+                  </span>
+                  {attachment.status === 'ready' && (
+                    // Removes it from this message only. The file stays attached
+                    // to the conversation, so the tutor can still refer to it.
+                    <button
+                      type="button"
+                      className="attach-remove"
+                      onClick={() => setAttachment(null)}
+                      aria-label={`Don't mention ${attachment.title} in this message`}
+                    >
+                      ×
+                    </button>
+                  )}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
+
           <textarea
             className="composer-input"
             value={draft}
@@ -481,12 +660,42 @@ const Conversation = () => {
               // Enter sends, Shift+Enter breaks the line — chat convention.
               if (e.key === 'Enter' && !e.shiftKey) handleSubmit(e)
             }}
-            placeholder={listening ? 'Listening…' : 'Explain a concept, or ask a question…'}
+            placeholder={
+              listening
+                ? 'Listening…'
+                : (activeMode?.placeholder ?? 'Explain a concept, or ask a question…')
+            }
             rows={2}
             disabled={busy}
           />
 
           <div className="composer-tools">
+            <input
+              ref={attachInputRef}
+              type="file"
+              accept={ACCEPT}
+              className="attach-input"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(e) => handleAttach(e.target.files)}
+            />
+            <motion.button
+              type="button"
+              className="mic"
+              onClick={() => attachInputRef.current?.click()}
+              disabled={busy || attachment?.status === 'reading'}
+              aria-label="Attach a photo or file"
+              title="Attach a photo of your homework, or a file"
+              whileHover={{ scale: 1.07 }}
+              whileTap={{ scale: 0.92 }}
+              transition={spring.snap}
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.4-2h4.6l1.4 2h1.8A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z" />
+                <circle cx="12" cy="12.5" r="3.4" />
+              </svg>
+            </motion.button>
+
             {recognitionSupported && (
               <motion.button
                 type="button"
@@ -530,9 +739,9 @@ const Conversation = () => {
             <motion.button
               className="send"
               type="submit"
-              disabled={busy || !draft.trim()}
-              whileHover={busy || !draft.trim() ? undefined : { scale: 1.05 }}
-              whileTap={busy || !draft.trim() ? undefined : { scale: 0.94 }}
+              disabled={!canSend}
+              whileHover={canSend ? { scale: 1.05 } : undefined}
+              whileTap={canSend ? { scale: 0.94 } : undefined}
               transition={spring.snap}
               aria-label="Send"
             >

@@ -139,7 +139,7 @@ const Signup = () => {
           title="Nobody is awake at eleven to be talked at. That is the gap."
           lines={[
             'Free to try, no card needed',
-            'PDFs up to 25 MB — slides, briefs, past papers',
+            'PDFs, photos, and slides up to 25 MB',
             'Export everything, or delete it, whenever',
           ]}
         />

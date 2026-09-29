@@ -316,6 +316,7 @@
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-areas:
+    'top top'
     'input tools'
     'hint hint';
   gap: 0.6rem 0.75rem;
@@ -450,6 +451,119 @@
   font-size: 0.64rem;
   color: var(--text-faint);
   padding-left: 0.25rem;
+}
+
+/* ------------------------------------------------- reply modes, attaching --- */
+
+.composer-top {
+  grid-area: top;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mode-chip {
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  transition: color var(--t-base) ease, background var(--t-base) ease,
+    border-color var(--t-base) ease;
+}
+
+.mode-chip:hover:not(:disabled) {
+  color: var(--brand-text);
+  border-color: var(--brand);
+}
+
+.mode-chip.is-on {
+  color: var(--brand-text);
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.mode-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.attach-input {
+  display: none;
+}
+
+.attach-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0.24rem 0.3rem 0.24rem 0.6rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--brand);
+  background: var(--brand-soft);
+  font-size: 0.76rem;
+  color: var(--brand-text);
+}
+
+.attach-chip.is-reading {
+  padding-right: 0.7rem;
+  border-style: dashed;
+}
+
+.attach-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 16rem;
+}
+
+.attach-spinner {
+  width: 12px;
+  height: 12px;
+  border-color: var(--brand-soft);
+  border-top-color: var(--brand-text);
+}
+
+.attach-remove {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: inherit;
+  background: transparent;
+}
+
+.attach-remove:hover {
+  background: var(--surface-3);
+}
+
+/* What a student's turn asked for, above its text. */
+.turn-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.35rem;
+}
+
+.turn-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 0.72rem;
 }
 
 /* ------------------------------------------------------------------ narrow --- */

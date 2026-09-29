@@ -62,7 +62,7 @@ const Pricing = () => {
       description: 'Enough to find out whether talking through your notes suits you.',
       features: [
         'A monthly study allowance to try it out',
-        'PDF upload up to 25 MB a file',
+        'PDFs, photos, Word and PowerPoint, up to 25 MB a file',
         'Voice in and voice out',
         'Full data export',
       ],
@@ -327,11 +327,11 @@ const faqs = [
   },
   {
     q: 'What can it read?',
-    a: 'PDFs up to 25 MB each — lecture slides, assignment briefs, practice exams. Scanned pages with no selectable text cannot be read yet, because there is no OCR step.',
+    a: 'PDFs, Word and PowerPoint files, and photos, up to 25 MB each: lecture slides, assignment briefs, practice exams, or a phone photo of the problem you are stuck on. Photos and scanned PDFs (up to 20 pages) are read by the AI, including handwriting and math, and that reading counts toward your allowance.',
   },
   {
     q: 'How much of a long document does it actually see?',
-    a: 'A fixed character budget per conversation, shared evenly across the documents you attach so one long file cannot crowd out the others. That is fine for a set of slides and not enough for a textbook — long documents get truncated.',
+    a: 'All of it, when your documents are short enough: a set of slides or a problem set goes in whole. For longer ones, like a textbook chapter, TATE AI searches the document for the passages that match each question and reads those, and says so when your question is not covered.',
   },
   {
     q: 'Can I get my data out?',

@@ -134,6 +134,99 @@ const SPOKEN_ABBREVIATIONS = [
   [/\betc\.(?=\s|$)/gi, 'et cetera'],
 ]
 
+const GREEK = [
+  'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'varepsilon', 'zeta', 'eta', 'theta', 'vartheta',
+  'iota', 'kappa', 'lambda', 'mu', 'nu', 'xi', 'pi', 'rho', 'sigma', 'tau', 'upsilon', 'phi',
+  'varphi', 'chi', 'psi', 'omega', 'Gamma', 'Delta', 'Theta', 'Lambda', 'Xi', 'Pi', 'Sigma',
+  'Phi', 'Psi', 'Omega',
+]
+
+// LaTeX commands with a spoken form. Anything not listed is read as its bare
+// name, which is right for most of the rest (\sin, \log, \max).
+const LATEX_WORDS = {
+  cdot: ' times ', times: ' times ', div: ' divided by ', pm: ' plus or minus ', mp: ' minus or plus ',
+  le: ' is less than or equal to ', leq: ' is less than or equal to ',
+  ge: ' is greater than or equal to ', geq: ' is greater than or equal to ',
+  ne: ' does not equal ', neq: ' does not equal ', approx: ' is about ', equiv: ' is equivalent to ',
+  to: ' to ', rightarrow: ' to ', Rightarrow: ' implies ', implies: ' implies ', iff: ' if and only if ',
+  infty: ' infinity ', partial: ' partial ', nabla: ' del ', degree: ' degrees ', circ: ' degrees ',
+  in: ' in ', notin: ' not in ', subset: ' subset of ', cup: ' union ', cap: ' intersect ',
+  forall: ' for all ', exists: ' there exists ', therefore: ' therefore ', ldots: ' and so on ',
+  cdots: ' and so on ', dots: ' and so on ', int: ' the integral of ', sum: ' the sum of ',
+  prod: ' the product of ', lim: ' the limit ', ln: ' natural log of ', sin: ' sine ',
+  cos: ' cosine ', tan: ' tangent ', sec: ' secant ', csc: ' cosecant ', cot: ' cotangent ',
+  perp: ' perpendicular to ', parallel: ' parallel to ', angle: ' angle ', triangle: ' triangle ',
+}
+
+const SPOKEN_POWERS = { 2: ' squared', 3: ' cubed' }
+
+/**
+ * Turns the inside of a $...$ formula into words. Not a full LaTeX reader:
+ * enough that the forms a tutor actually writes come out the way a teacher
+ * would say them, and nothing comes out as "backslash".
+ */
+const latexToWords = (source) => {
+  let out = source
+
+  // Formatting wrappers keep their contents.
+  out = out.replace(/\\(?:text|mathrm|mathbf|mathit|operatorname|textbf|boxed)\s*\{([^{}]*)\}/g, ' $1 ')
+  out = out.replace(/\\(?:left|right|big|Big|bigg|Bigg)\s*/g, '')
+  out = out.replace(/\\[,;:! ]|\\q?quad/g, ' ')
+  out = out.replace(/\^\s*\{?\s*\\circ\s*\}?/g, ' degrees ')
+
+  // Limits on integrals, sums and products are said as a range, not as a
+  // subscript and a power.
+  const bound = String.raw`(\{[^{}]*\}|\\?\w+)`
+  const unbrace = (value) => value.replace(/^\{|\}$/g, '')
+  const ranged = (command, spoken) => {
+    out = out.replace(
+      new RegExp(String.raw`\\${command}\s*_\s*${bound}\s*\^\s*${bound}`, 'g'),
+      (_, from, to) => ` ${spoken} from ${unbrace(from)} to ${unbrace(to)} of `
+    )
+  }
+  ranged('int', 'the integral')
+  ranged('sum', 'the sum')
+  ranged('prod', 'the product')
+  out = out.replace(
+    new RegExp(String.raw`\\lim\s*_\s*${bound}`, 'g'),
+    (_, under) => ` the limit as ${unbrace(under).replace(/\\to|\\rightarrow|->/, ' approaches ')} of `
+  )
+
+  // Innermost first, repeated, so \frac{\sqrt{x}}{2} unwraps from the inside.
+  for (let pass = 0; pass < 6; pass += 1) {
+    const before = out
+    out = out.replace(/\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, ' $1 over $2 ')
+    out = out.replace(/\\sqrt\s*\[([^\]]*)\]\s*\{([^{}]*)\}/g, ' the $1th root of $2 ')
+    out = out.replace(/\\sqrt\s*\{([^{}]*)\}/g, ' the square root of $1 ')
+    out = out.replace(/\^\s*\{([^{}]*)\}/g, (_, power) => SPOKEN_POWERS[power.trim()] ?? ` to the power of ${power} `)
+    out = out.replace(/_\s*\{([^{}]*)\}/g, ' sub $1 ')
+    if (out === before) break
+  }
+  out = out.replace(/\\sqrt\s*(\w)/g, ' the square root of $1 ')
+  out = out.replace(/\^\s*(\w)/g, (_, power) => SPOKEN_POWERS[power] ?? ` to the power of ${power} `)
+  out = out.replace(/_\s*(\w)/g, ' sub $1 ')
+
+  out = out.replace(/\\([A-Za-z]+)/g, (_, name) => {
+    if (LATEX_WORDS[name]) return LATEX_WORDS[name]
+    if (GREEK.includes(name)) return ` ${name.replace(/^var/, '').toLowerCase()} `
+    return ` ${name} `
+  })
+
+  // Operators inside math are always operators, unlike in prose.
+  out = out.replace(/\s*\+\s*/g, ' plus ')
+  out = out.replace(/(\S)\s*[-−]\s*/g, '$1 minus ')
+  out = out.replace(/^\s*[-−]\s*/g, 'negative ')
+  out = out.replace(/\s*=\s*/g, ' equals ')
+  out = out.replace(/\s*<\s*/g, ' is less than ')
+  out = out.replace(/\s*>\s*/g, ' is greater than ')
+  out = out.replace(/\s*\*\s*/g, ' times ')
+  out = out.replace(/\s*\/\s*/g, ' over ')
+  out = out.replace(/!/g, ' factorial ')
+  out = out.replace(/[{}]/g, ' ')
+
+  return ` ${out.replace(/\s+/g, ' ').trim()} `
+}
+
 /**
  * Rewrites a reply into what a person would actually say aloud.
  *
@@ -143,7 +236,16 @@ const SPOKEN_ABBREVIATIONS = [
  * its formatting.
  */
 export const toSpeakable = (text) => {
-  let out = text
+  // An escaped \$ is money, not math: park it so the math patterns skip it.
+  let out = text.replace(/\\\$/g, '\u0000')
+
+  // Math first, before the prose rules below can mistake ^ or _ for markdown.
+  out = out.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => latexToWords(math))
+  out = out.replace(/\$([^$\n]+?)\$/g, (_, math) => latexToWords(math))
+  out = out.replace(/\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)/g, (_, display, inline) =>
+    latexToWords(display ?? inline)
+  )
+  out = out.replace(/\u0000/g, '$')
 
   // Markdown structure: code fences, links, headings, list markers, quotes.
   out = out.replace(/```[\w-]*/g, ' ')

@@ -29,7 +29,7 @@ const features = [
     key: 'upload',
     tag: 'Upload',
     title: 'Drop in the actual course material',
-    body: 'Lecture slides, assignment briefs, practice exams. TATE AI reads the PDF and answers out of your syllabus, not out of the internet.',
+    body: 'Lecture slides, assignment briefs, practice exams. TATE AI reads the PDF, the slides, or a photo of the page, and answers out of your syllabus, not out of the internet.',
     icon: <IconUpload />,
     wide: true,
   },

@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { uploadDocument, validateFile, formatBytes } from '../lib/documents'
+import { ACCEPT, isPhoto, uploadDocument, validateFile, formatBytes } from '../lib/documents'
 import { ease, spring } from '../motion/tokens'
 import './DocumentUpload.css'
 
 /**
- * The PDF drop zone.
+ * The upload drop zone: PDFs, photos, Word and PowerPoint files.
  *
  * Three states, each with its own motion, because a drop target that does not
  * visibly react is a drop target people do not trust:
@@ -26,6 +26,9 @@ const DocumentUpload = ({ onUploaded }) => {
   const [busy, setBusy] = useState(false)
   const [progressLabel, setProgressLabel] = useState('')
   const [error, setError] = useState('')
+  // Photos and scans are read by the model, which takes longer than pulling text
+  // out of a PDF, so the wait is described differently.
+  const [readingPhoto, setReadingPhoto] = useState(false)
 
   const handleFiles = async (fileList) => {
     setError('')
@@ -40,6 +43,7 @@ const DocumentUpload = ({ onUploaded }) => {
 
     setBusy(true)
     setProgressLabel(`Uploading ${file.name} (${formatBytes(file.size)})…`)
+    setReadingPhoto(isPhoto(file))
 
     const result = await uploadDocument({ file, userId: user.id })
 
@@ -94,7 +98,7 @@ const DocumentUpload = ({ onUploaded }) => {
           ref={inputRef}
           id="document-file"
           type="file"
-          accept="application/pdf,.pdf"
+          accept={ACCEPT}
           className="drop-input"
           disabled={busy}
           onChange={(e) => handleFiles(e.target.files)}
@@ -116,7 +120,9 @@ const DocumentUpload = ({ onUploaded }) => {
                 </span>
                 <span className="drop-primary">{progressLabel || 'Working…'}</span>
                 <span className="drop-secondary">
-                  Extracting the text — this takes a moment on a big deck
+                  {readingPhoto
+                    ? 'Reading the photo — this takes a few seconds'
+                    : 'Extracting the text — this takes a moment on a big deck'}
                 </span>
               </motion.span>
             ) : (
@@ -149,10 +155,10 @@ const DocumentUpload = ({ onUploaded }) => {
                   </svg>
                 </motion.span>
                 <span className="drop-primary">
-                  {dragging ? 'Drop it' : 'Drop a PDF here, or click to choose'}
+                  {dragging ? 'Drop it' : 'Drop a file here, or click to choose'}
                 </span>
                 <span className="drop-secondary">
-                  Slides, assignments, practice exams · up to 25 MB
+                  PDF, photo, Word, or PowerPoint · up to 25 MB
                 </span>
               </motion.span>
             )}

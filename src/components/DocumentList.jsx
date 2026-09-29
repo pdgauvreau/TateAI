@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useAuth } from '../context/AuthContext'
 import { deleteDocument, formatBytes } from '../lib/documents'
 import { ease, spring } from '../motion/tokens'
 import './DocumentList.css'
@@ -25,14 +24,13 @@ const STATUS_LABEL = {
  *   that moves means "still happening", which is information.
  */
 const DocumentList = ({ documents, loading, onChanged }) => {
-  const { user } = useAuth()
   const [removingId, setRemovingId] = useState(null)
   const [error, setError] = useState('')
 
   const handleDelete = async (id) => {
     setError('')
     setRemovingId(id)
-    const { error: deleteError } = await deleteDocument({ id, userId: user.id })
+    const { error: deleteError } = await deleteDocument({ id })
     setRemovingId(null)
 
     if (deleteError) setError(deleteError)
@@ -65,7 +63,7 @@ const DocumentList = ({ documents, loading, onChanged }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: ease.out }}
       >
-        No documents yet. Upload a PDF above and TATE AI will read it.
+        No documents yet. Upload a PDF, a photo of a worksheet, or your slides above and TATE AI will read it.
       </motion.p>
     )
   }

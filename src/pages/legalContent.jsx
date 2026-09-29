@@ -30,8 +30,8 @@ export const privacy = [
           we never see or store the password itself.
         </p>
         <p>
-          <strong>Materials you upload.</strong> The PDF files you upload, and the text extracted
-          from them so the AI can read them.
+          <strong>Materials you upload.</strong> The files you upload (PDFs, photos, and Word and
+          PowerPoint files), and the text extracted from them so the AI can read them.
         </p>
         <p>
           <strong>Your conversations.</strong> Every message you send and every reply you receive,
@@ -71,7 +71,8 @@ export const privacy = [
           <li>
             <strong>Anthropic</strong> — provides the AI. When you send a message, the text of the
             documents attached to that conversation and the conversation history are sent to
-            Anthropic to generate a reply.
+            Anthropic to generate a reply. When you upload a photo or a scanned PDF, the image
+            itself is sent to Anthropic once, to read its text.
           </li>
           <li>
             <strong>Stripe and Link</strong> — process payments for paid plans. Purchases are sold
@@ -273,8 +274,9 @@ export const terms = [
     body: (
       <>
         <p>
-          Each plan includes an allowance of AI tutoring, measured by what your replies cost us to
-          produce over a rolling 30 days. Up to a quarter of it can be used in any one day. How far
+          Each plan includes an allowance of AI tutoring, measured by what your replies, and the
+          reading of any photos or scanned pages you upload, cost us to produce over a rolling 30
+          days. Up to a quarter of it can be used in any one day. How far
           it goes depends on how you use it: long documents, and replies with Deeper thinking
           switched on, use more. Unused allowance does not carry over. Your dashboard shows how much
           is left.

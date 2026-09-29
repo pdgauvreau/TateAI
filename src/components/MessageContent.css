@@ -1,0 +1,146 @@
+/* Rendered Markdown inside a tutor reply. Spacing is kept tight: these are chat
+   turns, not articles, and a reply of three short paragraphs should still read
+   as one turn. */
+
+.md {
+  word-break: break-word;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md p,
+.md ul,
+.md ol,
+.md pre,
+.md table,
+.md blockquote {
+  margin: 0 0 0.7em;
+}
+
+.md ul,
+.md ol {
+  padding-left: 1.35em;
+}
+
+.md li + li {
+  margin-top: 0.25em;
+}
+
+.md li > p {
+  margin: 0;
+}
+
+.md strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.md h1,
+.md h2,
+.md h3,
+.md h4 {
+  margin: 0.9em 0 0.4em;
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.md a {
+  color: var(--brand-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 0.1em 0.35em;
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+
+.md pre {
+  overflow-x: auto;
+  padding: 0.7em 0.85em;
+  border-radius: var(--r-md, 10px);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+}
+
+.md pre code {
+  padding: 0;
+  background: none;
+  font-size: 0.84em;
+}
+
+.md blockquote {
+  padding-left: 0.8em;
+  border-left: 3px solid var(--hairline-strong);
+  color: var(--text-dim);
+}
+
+.md table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.md th,
+.md td {
+  padding: 0.35em 0.7em;
+  border: 1px solid var(--hairline);
+  text-align: left;
+}
+
+.md th {
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+/* The typing caret, drawn at the end of the last block so it follows the text
+   as it arrives instead of sitting on a line of its own. Same shape and blink as
+   the hero's caret. */
+.md.is-streaming > :last-child::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--brand-bright);
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Math. A wide display equation scrolls inside the bubble instead of pushing it
+   past the edge of a phone screen. */
+.md .katex {
+  font-size: 1.06em;
+}
+
+.md .katex-display {
+  margin: 0.6em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.15em 0;
+}
+
+/* Math that failed to parse is shown as its source; KaTeX colours it red by
+   default, which reads as an alarm for what is usually a formula mid-stream. */
+.md .katex-error {
+  color: inherit !important;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+}

@@ -64,14 +64,16 @@ const freesAt = (oldest, windowMs) =>
   oldest ? new Date(new Date(oldest).getTime() + windowMs).toISOString() : null
 
 /**
- * Records one reply's usage. usage is the provider-neutral shape from
- * streamChat; a missing usage (the request failed before the provider billed
- * anything) records a zero-cost event so the attempt is still visible.
+ * Records one model call's usage. usage is the provider-neutral shape from
+ * streamChat or transcribe; a missing usage (the request failed before the
+ * provider billed anything) records a zero-cost event so the attempt is still
+ * visible. kind is 'chat_message' for a reply, 'transcription' for reading an
+ * uploaded photo or scan.
  */
-export const recordUsage = (supabase, userId, usage) =>
+export const recordUsage = (supabase, userId, usage, kind = 'chat_message') =>
   supabase.from('usage_events').insert({
     user_id: userId,
-    kind: 'chat_message',
+    kind,
     model: usage?.model ?? null,
     input_tokens: usage?.inputTokens ?? 0,
     output_tokens: usage?.outputTokens ?? 0,

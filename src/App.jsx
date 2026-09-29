@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import {
   BrowserRouter as Router,
   Routes,
@@ -15,12 +15,15 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
-import Conversation from './pages/Conversation'
 import Legal from './pages/Legal'
 import NotFound from './pages/NotFound'
 import Pricing from './components/Pricing'
 import { ease } from './motion/tokens'
 import './App.css'
+
+// Loaded on first visit to a conversation: it carries the Markdown and math
+// renderer (KaTeX), which roughly doubles the bundle and no other page needs.
+const Conversation = lazy(() => import('./pages/Conversation'))
 
 /**
  * Route shell.
@@ -97,7 +100,9 @@ const AnimatedRoutes = () => {
             element={
               <ProtectedRoute>
                 <PageTransition>
-                  <Conversation />
+                  <Suspense fallback={null}>
+                    <Conversation />
+                  </Suspense>
                 </PageTransition>
               </ProtectedRoute>
             }

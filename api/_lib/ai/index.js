@@ -17,7 +17,12 @@
  *            dollars x 1e6). An error thrown after the provider started billing
  *            carries the usage so far as error.usage.
  *
- * To add a provider: write an adapter with that signature, register it below,
+ *   transcribe({ mediaType, data, signal }) -> Promise<{ text, usage, truncated }>
+ *
+ *   Reads a photo or a scanned PDF into text. mediaType is an image type or
+ *   application/pdf, data is base64. usage has the same shape as above.
+ *
+ * To add a provider: write an adapter with those signatures, register it below,
  * and set AI_PROVIDER to its key. Nothing else in the codebase needs to change.
  */
 
@@ -30,7 +35,7 @@ export const activeProvider = () => process.env.AI_PROVIDER ?? 'anthropic'
 
 export class ProviderNotConfiguredError extends Error {}
 
-export const streamChat = async (options) => {
+const loadAdapter = async () => {
   const name = activeProvider()
   const load = ADAPTERS[name]
 
@@ -40,6 +45,9 @@ export const streamChat = async (options) => {
     )
   }
 
-  const adapter = await load()
-  return adapter.streamChat(options)
+  return load()
 }
+
+export const streamChat = async (options) => (await loadAdapter()).streamChat(options)
+
+export const transcribe = async (options) => (await loadAdapter()).transcribe(options)

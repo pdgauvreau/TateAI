@@ -163,7 +163,7 @@ const Hero = () => {
           >
             {[
               { k: 'Free to try', v: 'No card needed' },
-              { k: '25 MB PDFs', v: 'Slides, briefs, past papers' },
+              { k: 'PDFs & photos', v: 'Slides, worksheets, past papers' },
               { k: 'Voice in, voice out', v: 'Talk, and be talked back to' },
             ].map((fact) => (
               <motion.div

@@ -107,3 +107,73 @@ export const streamChat = async ({ system, messages, signal, onDelta, deep = fal
 
   return { text, usage }
 }
+
+const TRANSCRIBE_PROMPT = `Transcribe this file into text a tutor can work from. It is a student's homework, notes, or course material: often a phone photo of a worksheet, a textbook page, or handwritten work.
+
+- Reproduce every word, number, and problem, in reading order. Keep problem numbers and labels exactly as written.
+- Write all math in LaTeX: $...$ inline, $$...$$ for displayed equations. Write a dollar amount as \\$5.
+- Keep the student's own handwritten working, marked [Student's work: ...], separate from the printed problem.
+- Describe diagrams, graphs, and figures in a bracketed note with every label and value shown, e.g. [Figure: right triangle, legs 3 and 4, hypotenuse labeled c]. Render tables as Markdown tables.
+- Mark anything you cannot read as [illegible] rather than guessing.
+
+Output only the transcription, with no preamble or commentary.`
+
+/**
+ * Reads a photo or a scanned PDF into text, once, at upload time.
+ *
+ * The result is stored as the document's text, so every later reply works from
+ * cheap cached text rather than paying for the image again on each turn. Runs on
+ * the standard tier: reading a page is not the kind of hard reasoning the deep
+ * tier is for.
+ */
+export const transcribe = async ({ mediaType, data, signal }) => {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new ProviderNotConfiguredError(
+      'ANTHROPIC_API_KEY is not set. Add it in your Vercel project settings (without a VITE_ prefix).'
+    )
+  }
+
+  const { model } = TIERS.standard
+  const client = new Anthropic()
+
+  const source =
+    mediaType === 'application/pdf'
+      ? { type: 'document', source: { type: 'base64', media_type: mediaType, data } }
+      : { type: 'image', source: { type: 'base64', media_type: mediaType, data } }
+
+  // Streamed only so a long scanned document cannot hit an HTTP timeout; nothing
+  // is shown until it finishes.
+  const stream = client.messages.stream(
+    {
+      model,
+      max_tokens: 32000,
+      output_config: { effort: 'low' },
+      messages: [{ role: 'user', content: [source, { type: 'text', text: TRANSCRIBE_PROMPT }] }],
+    },
+    { signal }
+  )
+
+  let final
+  try {
+    final = await stream.finalMessage()
+  } catch (error) {
+    error.usage = meter(model, stream.currentMessage?.usage)
+    throw error
+  }
+
+  const usage = meter(final.model, final.usage)
+
+  if (final.stop_reason === 'refusal') {
+    const refusal = new Error('This file could not be read.')
+    refusal.usage = usage
+    throw refusal
+  }
+
+  const text = final.content
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text)
+    .join('')
+    .trim()
+
+  return { text, usage, truncated: final.stop_reason === 'max_tokens' }
+}

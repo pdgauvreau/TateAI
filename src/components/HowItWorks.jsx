@@ -26,7 +26,7 @@ const steps = [
     n: '01',
     label: 'Upload',
     title: 'Put the material in',
-    body: 'Drag in the PDFs you were given — slides, a problem set, last year’s paper. Text is extracted server-side and the document is marked ready when it can be read.',
+    body: 'Drag in what you were given — slides, a problem set, last year’s paper — or snap a photo of the worksheet. Text is extracted server-side, handwriting and math included, and the document is marked ready when it can be read.',
     detail: 'thermo_lecture_04.pdf · 2.1 MB · ready',
   },
   {

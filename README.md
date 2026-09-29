@@ -14,7 +14,10 @@ until the live-mode setup below is done — see [Before launch](#before-launch).
 | Marketing site (home, pricing) | Done |
 | Email/password auth, protected routes | Done |
 | Database schema + row-level security | Done |
-| PDF upload and text extraction | Done |
+| Upload and text extraction (PDF, photos, scans, Word, PowerPoint) | Done |
+| Math and Markdown rendering in replies | Done |
+| Reply modes: hint, similar example, check my work | Done |
+| Passage search over long documents | Done |
 | AI conversations | Done |
 | Voice (dictation + spoken replies) | Done |
 | Payments (Stripe checkout, portal, webhooks) | Done — test mode |
@@ -141,11 +144,13 @@ is deliberately avoided: it tends to leave content invisible.
 
 ## AI provider
 
-Chat goes through a provider-neutral interface in `api/_lib/ai/index.js`, which
-holds no vendor SDK calls. Each provider is an adapter exposing one function:
+Model calls go through a provider-neutral interface in `api/_lib/ai/index.js`,
+which holds no vendor SDK calls. Each provider is an adapter exposing two
+functions:
 
 ```js
-streamChat({ system, messages, signal, onDelta }) -> Promise<{ text }>
+streamChat({ system, messages, signal, onDelta, deep }) -> Promise<{ text, usage }>
+transcribe({ mediaType, data, signal }) -> Promise<{ text, usage, truncated }>
 ```
 
 `anthropic` is implemented. To add another, write the adapter, register it in the
@@ -156,15 +161,48 @@ would be bundled into the browser for anyone to read and spend.
 
 ### Context handling
 
-The conversation's documents are packed into the system prompt under a fixed
-character budget (`CONTEXT_BUDGET` in `api/chat.js`), shared evenly so one long
-document cannot crowd out the others. That is adequate for a set of lecture
-slides and **not** adequate for a textbook — long documents are truncated, and
-the model is not told which part was dropped. Retrieval over embeddings is the
-real fix and is not implemented.
+When a conversation's documents fit a character budget (`CONTEXT_BUDGET` in
+`api/chat.js`), they all go into the system prompt whole. The system prompt is
+cached, so they are billed at full price once and as a cheap cache read on every
+turn after.
 
-The system prompt is cached, so the documents are billed at full price once per
-conversation and as a cheap cache read on every turn after.
+When they do not fit, short documents (a photo of a worksheet, say) still go in
+whole, and the long ones are searched instead. Every document's text is split
+into overlapping passages of about 1,500 characters in `document_chunks` by a
+database trigger. Each message, the passages that best match the question (and
+the student's previous message, so a follow-up like "why?" keeps its topic) are
+found by Postgres full-text search (`match_document_chunks`) and sent with that
+message only, which keeps the system prompt cacheable. The model is told which
+documents are searched and to say when the passages do not cover the question.
+
+Full-text search matches words, not meaning: "the powerhouse of the cell" finds
+passages that say "mitochondria" only if they use the same words. Embedding
+search would close that gap, at the cost of an embeddings provider.
+
+### Uploads
+
+`api/documents/extract.js` turns each upload into text once, when it arrives:
+
+| Type | How |
+| --- | --- |
+| PDF with text | `unpdf`, no model call |
+| Scanned PDF (no selectable text), up to 20 pages | Read by the model |
+| Photo (JPEG, PNG, WebP, GIF; HEIC where the browser can decode it) | Shrunk to 2,000 px and re-encoded as JPEG in the browser, then read by the model |
+| Word (`.docx`) | `mammoth`, no model call |
+| PowerPoint (`.pptx`) | Slide XML read directly, with speaker notes, no model call |
+
+Reading with the model runs on the standard tier at low effort, is checked
+against the student's allowance first, and is metered as a `transcription`
+usage event. Math comes back as LaTeX, and figures as bracketed descriptions.
+
+### Reply modes
+
+The composer offers **Hint**, **Similar example**, and **Check my work**. The
+mode is stored on the message (`messages.intent`) and its instruction
+(`INTENT_INSTRUCTIONS` in `api/chat.js`) is added to that message every time
+the conversation is sent, so later turns see the same prompt. None of them hands
+over a solution to the student's own problem: a similar example is a different
+problem, and a check points to the first wrong step without correcting it.
 
 ## Before launch
 
@@ -264,7 +302,10 @@ support rather than offered as controls that do nothing.
 Support is uneven: recognition works in Chrome, Edge, and Safari, and is absent
 or behind a flag in Firefox. Replies are spoken a sentence at a time as they
 stream, since waiting for the full reply leaves a long silence and speaking each
-network chunk breaks words mid-syllable.
+network chunk breaks words mid-syllable. Each sentence first goes through
+`toSpeakable()`, which drops Markdown marks, turns brackets into pauses, and says
+symbols and LaTeX math as words ("$\frac{a}{b}$" is read "a over b"), so the
+voice never reads out punctuation.
 
 ## Data model
 
@@ -274,7 +315,8 @@ network chunk breaks words mid-syllable.
 | `documents` | Uploaded slides, assignments, practice exams |
 | `conversations` | A study session |
 | `conversation_documents` | Which documents a conversation draws on |
-| `messages` | Turns within a conversation |
+| `document_chunks` | Each document's text in searchable passages, written by a trigger |
+| `messages` | Turns within a conversation, with their reply mode and any attached file |
 
 Every table has row-level security enabled and scoped to the owning user. Uploaded
 files live in a private bucket at `<user-id>/<document-id>`, with storage policies

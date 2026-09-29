@@ -22,7 +22,8 @@ export const getConversation = async (id) =>
 export const listMessages = async (conversationId) =>
   supabase
     .from('messages')
-    .select('id, role, content, created_at')
+    // The attached file's title comes along so the thread can label the turn.
+    .select('id, role, content, intent, created_at, attachment:documents(title)')
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true })
 
@@ -68,8 +69,19 @@ export const deleteConversation = async (id) => {
  *
  * `onDelta` receives text as it arrives so the UI can render the reply while it
  * is still being written. Resolves with the complete text once the stream ends.
+ *
+ * `intent` is the reply mode the student picked ('hint', 'example', 'check'),
+ * and `documentId` a file they attached to this message from the composer.
  */
-export const sendMessage = async ({ conversationId, message, deep = false, onDelta, signal }) => {
+export const sendMessage = async ({
+  conversationId,
+  message,
+  deep = false,
+  intent = null,
+  documentId = null,
+  onDelta,
+  signal,
+}) => {
   const { data: sessionData } = await supabase.auth.getSession()
   const accessToken = sessionData.session?.access_token
   if (!accessToken) return { error: 'Your session expired. Sign in again.' }
@@ -82,7 +94,7 @@ export const sendMessage = async ({ conversationId, message, deep = false, onDel
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ conversationId, message, deep }),
+      body: JSON.stringify({ conversationId, message, deep, intent, documentId }),
       signal,
     })
   } catch (networkError) {
