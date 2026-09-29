@@ -1,0 +1,594 @@
+/* Courses, the planner, and study tools on the dashboard. Builds on the row and
+   picker styles in ConversationPanel.css and DocumentList.css, which load with
+   the dashboard. */
+
+/* ----------------------------------------------------------- course colours --- */
+
+/* One hue per key, mid-saturation so the dot reads on both the dark and light
+   backgrounds. Text never takes the colour; it only marks. */
+[data-color='green'] { --course: #10b981; }
+[data-color='blue'] { --course: #3b82f6; }
+[data-color='violet'] { --course: #8b5cf6; }
+[data-color='amber'] { --course: #f59e0b; }
+[data-color='rose'] { --course: #f43f5e; }
+[data-color='cyan'] { --course: #06b6d4; }
+[data-color='slate'] { --course: #64748b; }
+
+.course-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--course, var(--text-faint));
+}
+
+/* ------------------------------------------------------------- course bar --- */
+
+.course-bar-wrap {
+  margin-bottom: 1.25rem;
+}
+
+.course-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.course-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.85rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  transition: color var(--t-fast) ease, border-color var(--t-fast) ease, background var(--t-fast) ease;
+}
+
+.course-chip:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--hairline-strong);
+}
+
+.course-chip.is-on {
+  color: var(--text);
+  border-color: var(--course, var(--brand));
+  background: color-mix(in srgb, var(--course, var(--brand)) 14%, transparent);
+}
+
+.course-chip.is-add {
+  border-style: dashed;
+  color: var(--brand-text);
+}
+
+.course-chip.is-plain {
+  border-color: transparent;
+  background: none;
+}
+
+.course-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.course-add-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow: hidden;
+}
+
+.course-input {
+  width: 13rem;
+  padding: 0.42rem 0.8rem;
+  border-radius: var(--r-pill);
+  font-size: 0.84rem;
+}
+
+.course-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  margin-top: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.course-swatches {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.course-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--course);
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px var(--hairline);
+  transition: transform var(--t-fast) ease;
+}
+
+.course-swatch:hover {
+  transform: scale(1.12);
+}
+
+.course-swatch.is-on {
+  border-color: var(--bg-elev);
+  box-shadow: 0 0 0 2px var(--course);
+}
+
+.course-delete {
+  font-size: 0.82rem;
+  color: var(--danger);
+}
+
+.course-delete:hover {
+  text-decoration: underline;
+}
+
+.course-editor-note {
+  flex-basis: 100%;
+  font-size: 0.76rem;
+  color: var(--text-faint);
+}
+
+.course-error {
+  margin-top: 0.7rem;
+}
+
+/* Filing a document under a course, from its row. Quiet until hovered: it is a
+   setting, not the row's main action. */
+.doc-course {
+  align-self: flex-start;
+}
+
+.doc-course select {
+  max-width: 11rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  background: none;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: border-color var(--t-fast) ease, color var(--t-fast) ease;
+}
+
+.doc-course select:hover,
+.doc-course select:focus {
+  border-color: var(--hairline-strong);
+  color: var(--text-dim);
+  outline: none;
+}
+
+.doc-course select[data-color] {
+  color: var(--text-dim);
+  border-color: color-mix(in srgb, var(--course) 40%, transparent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.course-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+/* ------------------------------------------------------------- form fields --- */
+
+.form-input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  font-size: 0.88rem;
+  color: var(--text);
+  transition: border-color var(--t-fast) ease, box-shadow var(--t-fast) ease;
+}
+
+.form-input:hover {
+  border-color: var(--hairline-strong);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+/* Native date and time pickers take their colours from the root color-scheme,
+   which index.css sets per theme. */
+.form-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+/* ------------------------------------------------------------ shared panel --- */
+
+.study-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.study-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.study-form {
+  gap: 0.9rem;
+}
+
+.study-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  padding-top: 0.25rem;
+}
+
+.study-actions .panel-button {
+  flex: 1;
+}
+
+.study-go {
+  flex: 1;
+  padding: 0.75rem 1.1rem;
+  font-size: 0.9rem;
+}
+
+.study-note {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+/* Radio and checkbox rows for choosing documents or reviewing an import. */
+.pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.pick-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color var(--t-fast) ease, background var(--t-fast) ease;
+}
+
+.pick-row:hover {
+  border-color: var(--hairline-strong);
+}
+
+.pick-row.is-on {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.pick-row input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.pick-row.is-on .check-box {
+  background: linear-gradient(140deg, var(--brand-bright), var(--brand));
+  border-color: transparent;
+}
+
+.pick-row input:focus-visible ~ .check-box,
+.pick-row input:focus-visible ~ .pick-radio {
+  outline: 2px solid var(--brand-bright);
+  outline-offset: 2px;
+}
+
+.pick-radio {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+  transition: border-width var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+
+.pick-row.is-on .pick-radio {
+  border: 5px solid var(--brand);
+}
+
+.pick-row.is-review {
+  align-items: flex-start;
+}
+
+.pick-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+/* ----------------------------------------------------------------- planner --- */
+
+.due-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.due-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.due-group.is-overdue .due-group-title {
+  color: var(--danger);
+}
+
+.due-group.is-today .due-group-title {
+  color: var(--brand-text);
+}
+
+.due-group-count {
+  font-size: 0.64rem;
+  opacity: 0.8;
+}
+
+.due-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.due-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.6rem 0.6rem 0.6rem 0.7rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.due-item.is-done .due-title {
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+
+.due-check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 50%;
+  color: #03130d;
+  border: 1.5px solid var(--hairline-strong);
+  transition: background var(--t-base) ease, border-color var(--t-base) ease;
+}
+
+.due-check:hover {
+  border-color: var(--brand);
+}
+
+.due-check.is-on {
+  background: linear-gradient(140deg, var(--brand-bright), var(--brand));
+  border-color: transparent;
+}
+
+.due-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.due-title {
+  font-size: 0.9rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+
+.due-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.7rem;
+  font-size: 0.74rem;
+  color: var(--text-faint);
+}
+
+.due-when.is-overdue {
+  color: var(--danger);
+}
+
+.due-when.is-today {
+  color: var(--brand-text);
+}
+
+.due-notes {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.due-delete {
+  opacity: 0;
+  transition: opacity var(--t-fast) ease;
+}
+
+.due-item:hover .due-delete,
+.due-delete:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .due-delete {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------- study tools --- */
+
+.study-due-banner {
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--r-md);
+  background: var(--brand-soft);
+  border: 1px solid color-mix(in srgb, var(--brand) 45%, transparent);
+  font-size: 0.86rem;
+  color: var(--brand-text);
+}
+
+.study-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+}
+
+.study-icon.is-flashcards {
+  color: var(--brand-text);
+}
+
+.study-icon.is-quiz {
+  color: #60a5fa;
+}
+
+.study-icon.is-guide {
+  color: #c084fc;
+}
+
+.study-item-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.study-item-meta {
+  font-size: 0.74rem;
+  color: var(--text-faint);
+}
+
+.study-item-meta.is-due {
+  color: var(--brand-text);
+}
+
+.make-kinds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.make-kind {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  text-align: left;
+  transition: border-color var(--t-fast) ease, background var(--t-fast) ease;
+}
+
+.make-kind:hover:not(:disabled) {
+  border-color: var(--hairline-strong);
+}
+
+.make-kind.is-on {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.make-kind-label {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.make-kind-blurb {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+
+@media (max-width: 560px) {
+  .make-kinds,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .course-input {
+    width: 100%;
+  }
+
+  .course-add-form {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}

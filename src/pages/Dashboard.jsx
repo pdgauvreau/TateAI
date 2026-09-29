@@ -5,17 +5,33 @@ import DotBackground from '../components/DotBackground'
 import DocumentUpload from '../components/DocumentUpload'
 import DocumentList from '../components/DocumentList'
 import ConversationPanel from '../components/ConversationPanel'
+import CourseBar from '../components/CourseBar'
+import AssignmentsPanel from '../components/AssignmentsPanel'
+import StudyPanel from '../components/StudyPanel'
 import SplitText from '../components/motion/SplitText'
 import { Counter, ProgressRing } from '../components/motion/Interactive'
 import { useAuth } from '../context/AuthContext'
 import { listDocuments } from '../lib/documents'
 import { listConversations, getUsage } from '../lib/conversations'
+import { listCourses } from '../lib/courses'
+import { groupAssignments, listAssignments } from '../lib/assignments'
+import { listStudyItems } from '../lib/study'
 import { budgetForPlan } from '../../shared/plans'
 import { exportAllData } from '../lib/exportData'
 import { openBillingPortal } from '../lib/billing'
 import { ease, spring } from '../motion/tokens'
 import { supabase } from '../lib/supabase'
 import './Dashboard.css'
+
+const COURSE_PREF_KEY = 'tateai:course'
+
+const panelMotion = {
+  variants: {
+    hidden: { opacity: 0, y: 26, filter: 'blur(8px)' },
+    show: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  },
+  transition: { duration: 0.65, ease: ease.out },
+}
 
 const formatDate = (iso) =>
   new Date(iso).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
@@ -32,6 +48,20 @@ const Dashboard = () => {
   const [usage, setUsage] = useState(null)
   const [openingPortal, setOpeningPortal] = useState(false)
   const [confirmSlow, setConfirmSlow] = useState(false)
+  const [courses, setCourses] = useState([])
+  // The course filter is remembered per browser, so the dashboard reopens on
+  // the class the student was last working on.
+  const [courseId, setCourseId] = useState(() => {
+    try {
+      return localStorage.getItem(COURSE_PREF_KEY) || null
+    } catch {
+      return null
+    }
+  })
+  const [assignments, setAssignments] = useState([])
+  const [assignmentsLoading, setAssignmentsLoading] = useState(true)
+  const [studyItems, setStudyItems] = useState([])
+  const [studyLoading, setStudyLoading] = useState(true)
   const [searchParams, setSearchParams] = useSearchParams()
   const justPaid = searchParams.get('checkout') === 'success'
 
@@ -101,14 +131,60 @@ const Dashboard = () => {
     setConversationsLoading(false)
   }, [])
 
+  const refreshCourses = useCallback(async () => {
+    const { data, error } = await listCourses()
+    if (error) {
+      setLoadError(error.message)
+      return
+    }
+    setCourses(data ?? [])
+    // A remembered course that has since been deleted falls back to "All".
+    setCourseId((current) => (current && !(data ?? []).some((c) => c.id === current) ? null : current))
+  }, [])
+
+  const refreshAssignments = useCallback(async () => {
+    const { data, error } = await listAssignments()
+    if (error) setLoadError(error.message)
+    else setAssignments(data ?? [])
+    setAssignmentsLoading(false)
+  }, [])
+
+  const refreshStudy = useCallback(async () => {
+    const { items, error } = await listStudyItems()
+    if (error) setLoadError(error)
+    else setStudyItems(items)
+    setStudyLoading(false)
+  }, [])
+
+  useEffect(() => {
+    try {
+      if (courseId) localStorage.setItem(COURSE_PREF_KEY, courseId)
+      else localStorage.removeItem(COURSE_PREF_KEY)
+    } catch {
+      /* private window — the filter still works for this visit */
+    }
+  }, [courseId])
+
+  // Changing a course's name or colour, or deleting it, touches every panel.
+  const refreshAfterCourseChange = useCallback(async () => {
+    await refreshCourses()
+    refreshDocuments()
+    refreshConversations()
+    refreshAssignments()
+    refreshStudy()
+  }, [refreshCourses, refreshDocuments, refreshConversations, refreshAssignments, refreshStudy])
+
   useEffect(() => {
     if (!user) return
+    refreshCourses()
+    refreshAssignments()
+    refreshStudy()
     refreshDocuments()
     refreshConversations()
     getUsage().then((r) => {
       if (!r.error) setUsage(r)
     })
-  }, [user, refreshDocuments, refreshConversations])
+  }, [user, refreshCourses, refreshAssignments, refreshStudy, refreshDocuments, refreshConversations])
 
   const handleExport = async () => {
     setLoadError('')
@@ -126,6 +202,17 @@ const Dashboard = () => {
   const monthShare = hasMeter ? Math.min(1, usage.monthUsed / budget.monthly) : 0
   const dayCapped = hasMeter && usage.dayUsed >= budget.daily
   const readyDocs = documents.filter((d) => d.status === 'ready').length
+
+  // With a course picked, materials and conversations show that course's own.
+  // The generators and the planner filter for themselves, since they also
+  // offer unfiled documents to draw from.
+  const inCourse = (row) => !courseId || row.course_id === courseId
+  const shownDocuments = documents.filter(inCourse)
+  const shownConversations = conversations.filter(inCourse)
+  const dueSoon = (() => {
+    const g = groupAssignments(assignments.filter(inCourse))
+    return g.overdue.length + g.today.length + g.week.length
+  })()
 
   return (
     <div className="page dash">
@@ -166,6 +253,12 @@ const Dashboard = () => {
                     {' · '}
                     {conversations.length} conversation
                     {conversations.length === 1 ? '' : 's'}
+                    {dueSoon > 0 && (
+                      <>
+                        {' · '}
+                        <span className="dash-due">{dueSoon} due this week</span>
+                      </>
+                    )}
                   </span>
                 </motion.div>
               ) : (
@@ -313,6 +406,13 @@ const Dashboard = () => {
           )}
         </AnimatePresence>
 
+        <CourseBar
+          courses={courses}
+          selectedId={courseId}
+          onSelect={setCourseId}
+          onChanged={refreshAfterCourseChange}
+        />
+
         <motion.div
           className="dash-grid"
           variants={{
@@ -322,41 +422,60 @@ const Dashboard = () => {
           initial="hidden"
           animate="show"
         >
-          <motion.section
-            className="dash-panel panel rim"
-            variants={{
-              hidden: { opacity: 0, y: 26, filter: 'blur(8px)' },
-              show: { opacity: 1, y: 0, filter: 'blur(0px)' },
-            }}
-            transition={{ duration: 0.65, ease: ease.out }}
-          >
+          <motion.section className="dash-panel panel rim" {...panelMotion}>
+            <header className="panel-head">
+              <h2 className="panel-title">Due soon</h2>
+              <span className="panel-count">{dueSoon}</span>
+            </header>
+            <AssignmentsPanel
+              assignments={assignments}
+              courses={courses}
+              documents={documents}
+              courseId={courseId}
+              loading={assignmentsLoading}
+              onChanged={refreshAssignments}
+            />
+          </motion.section>
+
+          <motion.section className="dash-panel panel rim" {...panelMotion}>
+            <header className="panel-head">
+              <h2 className="panel-title">Study tools</h2>
+              <span className="panel-count">
+                {(courseId ? studyItems.filter(inCourse) : studyItems).length}
+              </span>
+            </header>
+            <StudyPanel
+              items={studyItems}
+              documents={documents}
+              courseId={courseId}
+              loading={studyLoading}
+              onChanged={refreshStudy}
+            />
+          </motion.section>
+
+          <motion.section className="dash-panel panel rim" {...panelMotion}>
             <header className="panel-head">
               <h2 className="panel-title">Your materials</h2>
-              <span className="panel-count">{documents.length}</span>
+              <span className="panel-count">{shownDocuments.length}</span>
             </header>
-            <DocumentUpload onUploaded={refreshDocuments} />
+            <DocumentUpload onUploaded={refreshDocuments} courseId={courseId} />
             <DocumentList
-              documents={documents}
+              documents={shownDocuments}
+              courses={courses}
               loading={documentsLoading}
               onChanged={refreshDocuments}
             />
           </motion.section>
 
-          <motion.section
-            className="dash-panel panel rim"
-            variants={{
-              hidden: { opacity: 0, y: 26, filter: 'blur(8px)' },
-              show: { opacity: 1, y: 0, filter: 'blur(0px)' },
-            }}
-            transition={{ duration: 0.65, ease: ease.out }}
-          >
+          <motion.section className="dash-panel panel rim" {...panelMotion}>
             <header className="panel-head">
               <h2 className="panel-title">Your conversations</h2>
-              <span className="panel-count">{conversations.length}</span>
+              <span className="panel-count">{shownConversations.length}</span>
             </header>
             <ConversationPanel
-              conversations={conversations}
-              documents={documents}
+              conversations={shownConversations}
+              documents={documents.filter((d) => !courseId || d.course_id === courseId || !d.course_id)}
+              courseId={courseId}
               loading={conversationsLoading}
               onChanged={refreshConversations}
             />

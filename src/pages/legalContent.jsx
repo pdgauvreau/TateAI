@@ -38,6 +38,11 @@ export const privacy = [
           stored so you can return to a conversation later.
         </p>
         <p>
+          <strong>Your study planning.</strong> The courses, assignments, and due dates you add or
+          import; the flashcards, quizzes, and study guides made for you, with your flashcard review
+          history and quiz scores.
+        </p>
+        <p>
           <strong>Billing information, if you subscribe.</strong> Payment is handled entirely by
           Stripe; we never see or store your card number. We keep your Stripe customer ID, which
           plan you are on, your subscription status, and when it renews or ends.
@@ -72,7 +77,9 @@ export const privacy = [
             <strong>Anthropic</strong> — provides the AI. When you send a message, the text of the
             documents attached to that conversation and the conversation history are sent to
             Anthropic to generate a reply. When you upload a photo or a scanned PDF, the image
-            itself is sent to Anthropic once, to read its text.
+            itself is sent to Anthropic once, to read its text. When you ask for flashcards, a quiz, a
+            study guide, or the due dates in a syllabus, the text of the documents you choose is sent
+            to Anthropic to make it.
           </li>
           <li>
             <strong>Stripe and Link</strong> — process payments for paid plans. Purchases are sold
@@ -274,9 +281,9 @@ export const terms = [
     body: (
       <>
         <p>
-          Each plan includes an allowance of AI tutoring, measured by what your replies, and the
-          reading of any photos or scanned pages you upload, cost us to produce over a rolling 30
-          days. Up to a quarter of it can be used in any one day. How far
+          Each plan includes an allowance of AI tutoring, measured by what your replies, the reading
+          of any photos or scanned pages you upload, and the study material and syllabus imports
+          you ask for cost us to produce over a rolling 30 days. Up to a quarter of it can be used in any one day. How far
           it goes depends on how you use it: long documents, and replies with Deeper thinking
           switched on, use more. Unused allowance does not carry over. Your dashboard shows how much
           is left.

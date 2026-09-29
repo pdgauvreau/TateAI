@@ -61,6 +61,10 @@
   box-shadow: 0 3px 14px -5px var(--glow);
 }
 
+.dash-due {
+  color: var(--brand-text);
+}
+
 .dash-planmeta {
   font-size: 0.86rem;
   color: var(--text-faint);

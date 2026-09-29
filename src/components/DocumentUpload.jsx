@@ -18,7 +18,7 @@ import './DocumentUpload.css'
  * - **busy** — a shimmer runs along the bottom edge. Deliberately not a progress
  *   bar: the upload reports no progress, and a bar that invents one is a lie.
  */
-const DocumentUpload = ({ onUploaded }) => {
+const DocumentUpload = ({ onUploaded, courseId }) => {
   const { user } = useAuth()
   const inputRef = useRef(null)
 
@@ -45,7 +45,7 @@ const DocumentUpload = ({ onUploaded }) => {
     setProgressLabel(`Uploading ${file.name} (${formatBytes(file.size)})…`)
     setReadingPhoto(isPhoto(file))
 
-    const result = await uploadDocument({ file, userId: user.id })
+    const result = await uploadDocument({ file, userId: user.id, courseId })
 
     if (result.error) {
       setError(result.error)

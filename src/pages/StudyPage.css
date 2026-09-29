@@ -1,0 +1,483 @@
+/* The flashcard, quiz, and study guide pages. */
+
+.study-page .page-narrow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.study-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  transition: color var(--t-fast) ease;
+}
+
+.study-back:hover {
+  color: var(--brand-text);
+}
+
+.study-back-arrow {
+  display: grid;
+  place-items: center;
+  transition: transform var(--t-base) var(--ease-out-expo);
+}
+
+.study-back:hover .study-back-arrow {
+  transform: translateX(-3px);
+}
+
+.study-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.study-title {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.study-title-skel {
+  display: block;
+  width: 16rem;
+  max-width: 80%;
+  height: 1.8rem;
+}
+
+.study-sub {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text-faint);
+}
+
+/* -------------------------------------------------------------- flashcards --- */
+
+.flashcard-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.flashcard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 15rem;
+  padding: 1.75rem 1.6rem;
+  text-align: left;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: border-color var(--t-base) ease;
+}
+
+.flashcard:hover:not(.is-flipped) {
+  border-color: var(--brand);
+}
+
+.flashcard.is-flipped {
+  cursor: default;
+}
+
+.flashcard-side {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.flashcard-front {
+  font-size: 1.15rem;
+  font-weight: 550;
+}
+
+.flashcard-back {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--hairline-strong);
+  overflow: hidden;
+}
+
+.flashcard-hint {
+  margin-top: auto;
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+
+.ratings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.rating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.7rem 0.4rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+  transition: border-color var(--t-fast) ease, background var(--t-fast) ease;
+}
+
+.rating-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.rating kbd {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  border: 1px solid var(--hairline);
+  color: var(--text-faint);
+}
+
+.rating-next {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-faint);
+}
+
+.rating.is-again:hover { border-color: var(--danger); background: var(--danger-soft); }
+.rating.is-hard:hover { border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+.rating.is-good:hover { border-color: var(--brand); background: var(--brand-soft); }
+.rating.is-easy:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+
+.study-done {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.75rem 1.6rem;
+}
+
+.study-done-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.study-done-body {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.card-index {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.card-index-toggle {
+  align-self: flex-start;
+  font-size: 0.84rem;
+  color: var(--text-dim);
+}
+
+.card-index-toggle:hover {
+  color: var(--brand-text);
+}
+
+.card-index-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow: hidden;
+}
+
+.card-index-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+
+.card-index-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.card-index-back {
+  color: var(--text-dim);
+  font-size: 0.86rem;
+}
+
+.card-delete {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--text-faint);
+  border: 1px solid var(--hairline);
+  transition: color var(--t-fast) ease, border-color var(--t-fast) ease, background var(--t-fast) ease;
+}
+
+.card-delete:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* -------------------------------------------------------------------- quiz --- */
+
+.quiz-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+.quiz-pip {
+  width: 18px;
+  height: 5px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  transition: background var(--t-base) ease;
+}
+
+.quiz-pip.is-current {
+  background: var(--text-dim);
+}
+
+.quiz-pip.is-right {
+  background: var(--brand);
+}
+
+.quiz-pip.is-wrong {
+  background: var(--danger);
+}
+
+.quiz-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.6rem 1.5rem;
+}
+
+.quiz-question {
+  font-size: 1.08rem;
+  font-weight: 550;
+  line-height: 1.55;
+}
+
+.quiz-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quiz-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+  text-align: left;
+  font-size: 0.95rem;
+  transition: border-color var(--t-fast) ease, background var(--t-fast) ease, opacity var(--t-base) ease;
+}
+
+.quiz-choice:hover:not(:disabled) {
+  border-color: var(--brand);
+  background: var(--surface-2);
+}
+
+.quiz-choice:disabled {
+  cursor: default;
+}
+
+.quiz-choice.is-right {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.quiz-choice.is-wrong {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.quiz-choice.is-faded {
+  opacity: 0.5;
+}
+
+.quiz-letter {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  border: 1px solid var(--hairline-strong);
+  color: var(--text-dim);
+}
+
+.quiz-choice.is-right .quiz-letter {
+  border-color: var(--brand);
+  color: var(--brand-text);
+}
+
+.quiz-choice.is-wrong .quiz-letter {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.quiz-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+.quiz-feedback.is-right {
+  border-color: color-mix(in srgb, var(--brand) 45%, transparent);
+}
+
+.quiz-feedback.is-wrong {
+  border-color: rgba(251, 113, 133, 0.4);
+}
+
+.quiz-verdict {
+  font-weight: 650;
+}
+
+.quiz-feedback .study-go {
+  align-self: flex-start;
+  flex: none;
+  margin-top: 0.3rem;
+}
+
+.quiz-missed {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.quiz-missed li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+
+.quiz-missed-answer {
+  color: var(--brand-text);
+}
+
+.quiz-missed-why {
+  color: var(--text-dim);
+  font-size: 0.86rem;
+}
+
+.study-go {
+  padding: 0.75rem 1.2rem;
+  font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------------------- guide --- */
+
+.guide-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.guide {
+  padding: 1.8rem 1.7rem;
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.guide .md h2 {
+  font-size: 1.12rem;
+  margin-top: 1.4em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--hairline);
+}
+
+@media (max-width: 560px) {
+  .ratings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .flashcard,
+  .quiz-card,
+  .guide,
+  .study-done {
+    padding: 1.3rem 1.1rem;
+  }
+}
+
+/* Printing a guide: just the content, in ink. */
+@media print {
+  nav,
+  footer,
+  .guide-bar,
+  .ambient {
+    display: none !important;
+  }
+
+  .study-page {
+    padding-top: 0;
+  }
+
+  .guide {
+    border: none;
+    background: none;
+    backdrop-filter: none;
+    padding: 0;
+    color: #000;
+  }
+
+  .guide.rim::before {
+    display: none;
+  }
+}

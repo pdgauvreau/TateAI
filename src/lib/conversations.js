@@ -13,11 +13,11 @@ export const getUsage = async () => {
 export const listConversations = async () =>
   supabase
     .from('conversations')
-    .select('id, title, updated_at')
+    .select('id, title, course_id, updated_at')
     .order('updated_at', { ascending: false })
 
 export const getConversation = async (id) =>
-  supabase.from('conversations').select('id, title').eq('id', id).single()
+  supabase.from('conversations').select('id, title, course_id').eq('id', id).single()
 
 export const listMessages = async (conversationId) =>
   supabase
@@ -34,10 +34,10 @@ export const listConversationDocuments = async (conversationId) =>
     .eq('conversation_id', conversationId)
 
 /** Creates a conversation and attaches the chosen documents to it. */
-export const createConversation = async ({ userId, title, documentIds }) => {
+export const createConversation = async ({ userId, title, documentIds, courseId }) => {
   const { data: conversation, error } = await supabase
     .from('conversations')
-    .insert({ user_id: userId, title: title || 'New conversation' })
+    .insert({ user_id: userId, title: title || 'New conversation', course_id: courseId ?? null })
     .select('id')
     .single()
 

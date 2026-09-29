@@ -37,6 +37,8 @@ const INTENT_INSTRUCTIONS = {
     "The student asked for a worked example. Make up a new problem that tests the same idea as the one they are working on, with different numbers and details, and solve it completely, step by step, saying why each step is taken. Then hand their own problem back and ask them to try its first step. Do not solve their actual problem, even partly, and do not reuse its numbers.",
   check:
     'The student wants their work checked. Go through it step by step. Find the first step that is wrong, point to it, and explain what went wrong and why, without giving the corrected result or the final answer; ask them to redo it from that step. If a later step has a separate mistake, say that there is one and where, without fixing it. If everything is right, say so plainly, and flag anything that came out right by luck. If they gave only an answer with no working, ask to see their steps.',
+  essay:
+    "The student wants feedback on a piece of their writing (pasted, or attached as a document). Respond as a writing tutor. Start with what works. Then give the two or three changes that would improve it most, in order of impact: the thesis (is it arguable and specific?), structure and flow, whether the evidence supports each claim, and clarity. Point to the exact place each time by quoting a few words. Explain the problem and ask a question that helps them fix it; do not rewrite their sentences or paragraphs for them, and do not write new content they could paste in. Mention grammar only if it gets in the way of meaning. If they ask how to format a citation, show the format using the source details they give. If no writing is included, ask them to paste or attach it.",
 }
 
 const INTENTS = Object.keys(INTENT_INSTRUCTIONS)

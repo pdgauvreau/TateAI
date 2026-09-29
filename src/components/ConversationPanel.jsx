@@ -15,7 +15,7 @@ import './ConversationPanel.css'
  * them in one box, rather than pushing the list down, means the panel does not
  * change height while the reader is choosing.
  */
-const ConversationPanel = ({ conversations, documents, loading, onChanged }) => {
+const ConversationPanel = ({ conversations, documents, loading, onChanged, courseId }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -46,6 +46,7 @@ const ConversationPanel = ({ conversations, documents, loading, onChanged }) => 
       userId: user.id,
       title,
       documentIds: selected,
+      courseId,
     })
     setBusy(false)
 

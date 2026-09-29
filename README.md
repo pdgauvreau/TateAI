@@ -18,6 +18,10 @@ until the live-mode setup below is done — see [Before launch](#before-launch).
 | Math and Markdown rendering in replies | Done |
 | Reply modes: hint, similar example, check my work | Done |
 | Passage search over long documents | Done |
+| Courses | Done |
+| Assignment planner, with syllabus import | Done (in-app only; no email reminders yet) |
+| Flashcards with spaced repetition, practice quizzes, study guides | Done |
+| Essay feedback reply mode | Done |
 | AI conversations | Done |
 | Voice (dictation + spoken replies) | Done |
 | Payments (Stripe checkout, portal, webhooks) | Done — test mode |
@@ -197,12 +201,39 @@ usage event. Math comes back as LaTeX, and figures as bracketed descriptions.
 
 ### Reply modes
 
-The composer offers **Hint**, **Similar example**, and **Check my work**. The
+The composer offers **Hint**, **Similar example**, **Check my work**, and
+**Essay feedback**. The
 mode is stored on the message (`messages.intent`) and its instruction
 (`INTENT_INSTRUCTIONS` in `api/chat.js`) is added to that message every time
 the conversation is sent, so later turns see the same prompt. None of them hands
 over a solution to the student's own problem: a similar example is a different
-problem, and a check points to the first wrong step without correcting it.
+problem, a check points to the first wrong step without correcting it, and
+essay feedback critiques a draft without rewriting it.
+
+### Study workspace
+
+Everything can be filed under a **course** (`courses`; `course_id` on
+documents, conversations, assignments, and study items). The dashboard's course
+bar filters every panel, and anything made while a course is selected is filed
+under it. Deleting a course unfiles its contents rather than deleting them.
+
+**Assignments** live in `assignments` with a `due_at`. A date with no time is
+stored as 11:59 PM local time. **Import from syllabus** sends one document to
+`api/generate.js` (`kind: 'syllabus'`), which returns the dated deliverables it
+finds without saving them. The student reviews the list and saves the ones they
+keep, and items already in the planner with the same title and day are left
+out. Reminders are in-app only (overdue and due-soon highlighting on the
+dashboard). Email reminders would need an email provider and a scheduled job.
+
+**Flashcards, quizzes, and study guides** are made by `api/generate.js` from up
+to 10 chosen documents (150,000 characters in all, shared evenly), with
+structured JSON output for cards and questions. The generation prompt carries
+the tutor rule: homework problems in the materials are never solved, and new
+questions test the same ideas instead. Cards are scheduled by a small SM-2
+variant in `src/lib/srs.js`: intervals grow 1, 3, 8, 20... days with Good,
+Again resets a card and brings it back within the session, and nothing is
+scheduled more than a year out. Generation is metered as `generation` usage
+events, and each kind checks the allowance first.
 
 ## Before launch
 
@@ -317,6 +348,11 @@ voice never reads out punctuation.
 | `conversation_documents` | Which documents a conversation draws on |
 | `document_chunks` | Each document's text in searchable passages, written by a trigger |
 | `messages` | Turns within a conversation, with their reply mode and any attached file |
+| `courses` | A student's classes, each with a colour key |
+| `assignments` | Due dates, done state, and the syllabus they were imported from |
+| `decks`, `cards` | Flashcards and each card's review schedule |
+| `quizzes` | Generated multiple-choice questions, attempts, and best score |
+| `study_guides` | Generated Markdown study guides |
 
 Every table has row-level security enabled and scoped to the owning user. Uploaded
 files live in a private bucket at `<user-id>/<document-id>`, with storage policies

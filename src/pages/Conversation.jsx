@@ -55,7 +55,18 @@ const MODES = [
     ask: null,
     placeholder: 'Paste your steps, or attach a photo of your working.',
   },
+  {
+    id: 'essay',
+    label: 'Essay feedback',
+    tag: 'Asked for writing feedback',
+    ask: null,
+    placeholder: 'Paste your draft, or attach it as a Word file.',
+    // Feedback, not a rewrite: see INTENT_INSTRUCTIONS.essay in api/chat.js.
+  },
 ]
+
+// Modes that need something to look at before they can be sent.
+const NEEDS_WORK = { check: 'your working', essay: 'your draft' }
 
 const modeById = (id) => MODES.find((mode) => mode.id === id)
 
@@ -237,7 +248,12 @@ const Conversation = () => {
 
       setError('')
       setAttachment({ status: 'reading', title: file.name })
-      const result = await uploadDocument({ file, userId: user.id, conversationId: id })
+      const result = await uploadDocument({
+        file,
+        userId: user.id,
+        conversationId: id,
+        courseId: conversation?.course_id ?? null,
+      })
 
       if (result.error) {
         setAttachment(null)
@@ -248,7 +264,7 @@ const Conversation = () => {
       setAttachment({ status: 'ready', title: result.title, documentId: result.documentId })
       setDocuments((prev) => (prev.includes(result.title) ? prev : [...prev, result.title]))
     },
-    [id, user]
+    [id, user, conversation]
   )
 
   // Keep the newest turn in view as the reply streams in.
@@ -265,8 +281,8 @@ const Conversation = () => {
       const mode = modeById(intent)
       const attached = attachment?.status === 'ready' ? attachment : null
 
-      if (mode?.id === 'check' && !typed && !attached) {
-        setError('Paste your working, or attach a photo of it, and then send.')
+      if (NEEDS_WORK[mode?.id] && !typed && !attached) {
+        setError(`Paste ${NEEDS_WORK[mode.id]}, or attach it, and then send.`)
         return
       }
 
@@ -274,6 +290,7 @@ const Conversation = () => {
       const text =
         typed ||
         (mode?.id === 'check' && attached ? `Can you check my work in "${attached.title}"?` : null) ||
+        (mode?.id === 'essay' && attached ? `Can you give me feedback on "${attached.title}"?` : null) ||
         mode?.ask ||
         (attached ? `I've attached "${attached.title}".` : '')
       if (!text) return

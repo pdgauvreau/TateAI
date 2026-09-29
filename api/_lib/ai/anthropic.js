@@ -108,7 +108,80 @@ export const streamChat = async ({ system, messages, signal, onDelta, deep = fal
   return { text, usage }
 }
 
-const TRANSCRIBE_PROMPT = `Transcribe this file into text a tutor can work from. It is a student's homework, notes, or course material: often a phone photo of a worksheet, a textbook page, or handwritten work.
+/**
+ * One-shot generation from course materials: flashcards, a quiz, a study guide,
+ * or the due dates in a syllabus. With a JSON schema the reply is constrained to
+ * it and returned parsed as `data`; without one it is returned as `text`.
+ *
+ * The materials go in the system prompt with a cache breakpoint, so making a
+ * quiz and then flashcards from the same documents reads them from cache the
+ * second time.
+ */
+export const generate = async ({ system, materials, prompt, schema, maxTokens = 16000, signal }) => {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new ProviderNotConfiguredError(
+      'ANTHROPIC_API_KEY is not set. Add it in your Vercel project settings (without a VITE_ prefix).'
+    )
+  }
+
+  const { model } = TIERS.standard
+  const client = new Anthropic()
+
+  const stream = client.messages.stream(
+    {
+      model,
+      max_tokens: maxTokens,
+      system: [
+        { type: 'text', text: system },
+        { type: 'text', text: materials, cache_control: { type: 'ephemeral' } },
+      ],
+      output_config: {
+        effort: 'medium',
+        ...(schema ? { format: { type: 'json_schema', schema } } : {}),
+      },
+      messages: [{ role: 'user', content: prompt }],
+    },
+    { signal }
+  )
+
+  let final
+  try {
+    final = await stream.finalMessage()
+  } catch (error) {
+    error.usage = meter(model, stream.currentMessage?.usage)
+    throw error
+  }
+
+  const usage = meter(final.model, final.usage)
+
+  if (final.stop_reason === 'refusal') {
+    const refusal = new Error('The model declined to generate this.')
+    refusal.usage = usage
+    throw refusal
+  }
+  if (final.stop_reason === 'max_tokens') {
+    const cut = new Error('The result was too long to finish. Try fewer documents at a time.')
+    cut.usage = usage
+    throw cut
+  }
+
+  const text = final.content
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text)
+    .join('')
+
+  if (!schema) return { text, usage }
+
+  try {
+    return { data: JSON.parse(text), usage }
+  } catch {
+    const malformed = new Error('The model returned something that could not be read. Try again.')
+    malformed.usage = usage
+    throw malformed
+  }
+}
+
+const TRANSCRIBE_PROMPT =`Transcribe this file into text a tutor can work from. It is a student's homework, notes, or course material: often a phone photo of a worksheet, a textbook page, or handwritten work.
 
 - Reproduce every word, number, and problem, in reading order. Keep problem numbers and labels exactly as written.
 - Write all math in LaTeX: $...$ inline, $$...$$ for displayed equations. Write a dollar amount as \\$5.

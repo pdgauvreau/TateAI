@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { deleteDocument, formatBytes } from '../lib/documents'
+import { fileUnder } from '../lib/courses'
 import { ease, spring } from '../motion/tokens'
 import './DocumentList.css'
+import './Study.css'
 
 const STATUS_LABEL = {
   pending: 'Queued',
@@ -23,7 +25,7 @@ const STATUS_LABEL = {
  * - The two in-progress statuses pulse; `ready` and `failed` sit still. A status
  *   that moves means "still happening", which is information.
  */
-const DocumentList = ({ documents, loading, onChanged }) => {
+const DocumentList = ({ documents, courses = [], loading, onChanged }) => {
   const [removingId, setRemovingId] = useState(null)
   const [error, setError] = useState('')
 
@@ -34,6 +36,13 @@ const DocumentList = ({ documents, loading, onChanged }) => {
     setRemovingId(null)
 
     if (deleteError) setError(deleteError)
+    else onChanged?.()
+  }
+
+  const handleFile = async (id, courseId) => {
+    setError('')
+    const { error: fileError } = await fileUnder('documents', id, courseId || null)
+    if (fileError) setError(fileError.message)
     else onChanged?.()
   }
 
@@ -113,6 +122,23 @@ const DocumentList = ({ documents, loading, onChanged }) => {
                 </span>
                 {doc.status === 'failed' && doc.status_detail && (
                   <span className="doc-detail">{doc.status_detail}</span>
+                )}
+                {courses.length > 0 && (
+                  <label className="doc-course">
+                    <span className="sr-only">Course for {doc.title}</span>
+                    <select
+                      value={doc.course_id ?? ''}
+                      onChange={(e) => handleFile(doc.id, e.target.value)}
+                      data-color={courses.find((c) => c.id === doc.course_id)?.color}
+                    >
+                      <option value="">No course</option>
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 )}
               </div>
 

@@ -89,7 +89,7 @@ const preparePhoto = async (file) => {
 export const listDocuments = async () =>
   supabase
     .from('documents')
-    .select('id, title, status, status_detail, size_bytes, mime_type, created_at')
+    .select('id, title, status, status_detail, size_bytes, mime_type, course_id, created_at')
     .order('created_at', { ascending: false })
 
 /**
@@ -101,9 +101,10 @@ export const listDocuments = async () =>
  * can see what went wrong instead of the upload silently vanishing.
  *
  * With a conversationId, the document is also attached to that conversation
- * once its text is ready, so the tutor sees it from the next message on.
+ * once its text is ready, so the tutor sees it from the next message on. With a
+ * courseId, it is filed under that course.
  */
-export const uploadDocument = async ({ file, userId, conversationId }) => {
+export const uploadDocument = async ({ file, userId, conversationId, courseId }) => {
   const kind = kindOf(file)
   if (!kind) return { error: UNSUPPORTED }
 
@@ -129,6 +130,7 @@ export const uploadDocument = async ({ file, userId, conversationId }) => {
       mime_type: kind.store,
       size_bytes: body.size,
       status: 'pending',
+      course_id: courseId ?? null,
     })
     .select('id')
     .single()

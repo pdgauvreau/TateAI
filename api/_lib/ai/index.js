@@ -22,6 +22,12 @@
  *   Reads a photo or a scanned PDF into text. mediaType is an image type or
  *   application/pdf, data is base64. usage has the same shape as above.
  *
+ *   generate({ system, materials, prompt, schema?, maxTokens?, signal })
+ *     -> Promise<{ data, usage }> with a JSON schema, { text, usage } without
+ *
+ *   One-shot generation over course materials. `materials` is the long, stable
+ *   part of the prompt and should be cached by the adapter.
+ *
  * To add a provider: write an adapter with those signatures, register it below,
  * and set AI_PROVIDER to its key. Nothing else in the codebase needs to change.
  */
@@ -51,3 +57,5 @@ const loadAdapter = async () => {
 export const streamChat = async (options) => (await loadAdapter()).streamChat(options)
 
 export const transcribe = async (options) => (await loadAdapter()).transcribe(options)
+
+export const generate = async (options) => (await loadAdapter()).generate(options)

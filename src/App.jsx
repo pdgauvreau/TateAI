@@ -21,9 +21,12 @@ import Pricing from './components/Pricing'
 import { ease } from './motion/tokens'
 import './App.css'
 
-// Loaded on first visit to a conversation: it carries the Markdown and math
-// renderer (KaTeX), which roughly doubles the bundle and no other page needs.
+// Loaded on first visit: these pages carry the Markdown and math renderer
+// (KaTeX), which roughly doubles the bundle and the other pages do not need.
 const Conversation = lazy(() => import('./pages/Conversation'))
+const StudyCards = lazy(() => import('./pages/StudyCards'))
+const StudyQuiz = lazy(() => import('./pages/StudyQuiz'))
+const StudyGuide = lazy(() => import('./pages/StudyGuide'))
 
 /**
  * Route shell.
@@ -102,6 +105,42 @@ const AnimatedRoutes = () => {
                 <PageTransition>
                   <Suspense fallback={null}>
                     <Conversation />
+                  </Suspense>
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/study/cards/:id"
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Suspense fallback={null}>
+                    <StudyCards />
+                  </Suspense>
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/study/quiz/:id"
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Suspense fallback={null}>
+                    <StudyQuiz />
+                  </Suspense>
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/study/guide/:id"
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Suspense fallback={null}>
+                    <StudyGuide />
                   </Suspense>
                 </PageTransition>
               </ProtectedRoute>
