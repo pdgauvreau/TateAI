@@ -125,6 +125,86 @@ export const cancelSpeech = () => {
   if (synthesisSupported) window.speechSynthesis.cancel()
 }
 
+// Abbreviations a tutor would expand when talking. Matched case-insensitively
+// with the trailing period optional.
+const SPOKEN_ABBREVIATIONS = [
+  [/\be\.g\.?(?=[\s,]|$)/gi, 'for example'],
+  [/\bi\.e\.?(?=[\s,]|$)/gi, 'that is'],
+  [/\bvs\.?(?=\s|$)/gi, 'versus'],
+  [/\betc\.(?=\s|$)/gi, 'et cetera'],
+]
+
+/**
+ * Rewrites a reply into what a person would actually say aloud.
+ *
+ * Voices read punctuation literally ("backtick", "open parenthesis") or trip
+ * over formatting marks, so this strips markdown, turns asides into pauses, and
+ * says symbols as words. Only the spoken copy changes; the text on screen keeps
+ * its formatting.
+ */
+export const toSpeakable = (text) => {
+  let out = text
+
+  // Markdown structure: code fences, links, headings, list markers, quotes.
+  out = out.replace(/```[\w-]*/g, ' ')
+  out = out.replace(/!?\[([^\]]+)\]\((?:[^)]+)\)/g, '$1')
+  out = out.replace(/https?:\/\/\S+/g, 'the link')
+  out = out.replace(/^\s{0,3}#{1,6}\s+/gm, '')
+  out = out.replace(/^\s*[-*+•]\s+/gm, '')
+  out = out.replace(/^\s*>\s?/gm, '')
+
+  // Emphasis and inline code marks carry no words.
+  out = out.replace(/(\*\*|__|~~)(.+?)\1/g, '$2')
+  out = out.replace(/(^|[^\w*])[*_]([^*_\n]+)[*_](?=[^\w*]|$)/g, '$1$2')
+  out = out.replace(/`/g, '')
+
+  for (const [pattern, spoken] of SPOKEN_ABBREVIATIONS) {
+    out = out.replace(pattern, spoken)
+  }
+
+  // Symbols that mean a word. Arithmetic ones only between numbers or single
+  // letters, so hyphenated words and slashes in prose are left alone.
+  out = out.replace(/([\w)])\s*(?:!=|≠)\s*/g, '$1 does not equal ')
+  out = out.replace(/([\w)])\s*(?:<=|≤)\s*/g, '$1 is less than or equal to ')
+  out = out.replace(/([\w)])\s*(?:>=|≥)\s*/g, '$1 is greater than or equal to ')
+  out = out.replace(/\s*(?:->|→|=>)\s*/g, ' to ')
+  out = out.replace(/\s*(?:<-|←)\s*/g, ' from ')
+  out = out.replace(/(\w)\s*[≈]\s*/g, '$1 is about ')
+  out = out.replace(/(\w)\s+<\s+/g, '$1 is less than ')
+  out = out.replace(/(\w)\s+>\s+/g, '$1 is greater than ')
+  out = out.replace(/\s*=\s*/g, ' equals ')
+  out = out.replace(/(\d|\b[a-z])\s*[×*]\s*(?=\d|[a-z]\b)/gi, '$1 times ')
+  out = out.replace(/(\d|\b[a-z])\s*÷\s*/gi, '$1 divided by ')
+  out = out.replace(/(\d|\b[a-z])\s+[-−]\s+(?=\d|[a-z]\b)/gi, '$1 minus ')
+  out = out.replace(/(\d)\s*\/\s*(?=\d)/g, '$1 over ')
+  out = out.replace(/(\w)\^(\w+)/g, '$1 to the power of $2')
+  out = out.replace(/([a-z])\/([a-z])/gi, '$1 or $2')
+  out = out.replace(/\s*&\s*/g, ' and ')
+  out = out.replace(/~\s*(?=\d)/g, 'about ')
+  out = out.replace(/±/g, ' plus or minus ')
+  out = out.replace(/°/g, ' degrees')
+
+  // Brackets become the short pauses a speaker leaves around an aside. Empty
+  // ones, as in "map()", are dropped rather than read as a pause.
+  out = out.replace(/\(\s*\)|\[\s*\]|\{\s*\}/g, '')
+  out = out.replace(/\s*[([{]\s*/g, ', ')
+  out = out.replace(/\s*[)\]}]\s*/g, ', ')
+
+  // Anything decorative left over: stray markdown, emoji, pipes from tables.
+  out = out.replace(/[*_#|<>\\]/g, ' ')
+  out = out.replace(/\p{Extended_Pictographic}/gu, '')
+
+  // Tidy up the commas the rewrites leave behind.
+  out = out.replace(/\s+/g, ' ')
+  out = out.replace(/\s+([,.!?;:])/g, '$1')
+  out = out.replace(/,(?:\s*,)+/g, ',')
+  out = out.replace(/,\s*([.!?;:])/g, '$1')
+  out = out.replace(/([.!?;:])\s*,/g, '$1')
+  out = out.replace(/^[\s,]+|[\s,]+$/g, '')
+
+  return out
+}
+
 /**
  * Queues text to be spoken.
  *
@@ -133,9 +213,11 @@ export const cancelSpeech = () => {
  * network chunk breaks words mid-syllable.
  */
 export const speak = (text) => {
-  if (!synthesisSupported || !text.trim()) return
+  if (!synthesisSupported) return
+  const spoken = toSpeakable(text)
+  if (!spoken) return
 
-  const utterance = new SpeechSynthesisUtterance(text)
+  const utterance = new SpeechSynthesisUtterance(spoken)
   utterance.rate = 1.02
   utterance.pitch = 1
 
