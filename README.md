@@ -13,7 +13,7 @@ AI made it too easy to get homework done without learning anything. TateAI works
 - **Reply modes:** Hint, Similar example, Check my work, Essay feedback
 - **Study workspace:** courses, assignment planner with syllabus import, spaced-repetition flashcards, quizzes, study guides
 - **Voice:** dictation and spoken replies through the Web Speech API
-- **Real billing:** Stripe checkout, customer portal and webhooks, with usage metered by actual AI cost
+- **Billing:** Stripe checkout, customer portal and webhooks (test mode for now), with usage metered by actual AI cost
 - **Safe by default:** row-level security on every table, provider-neutral AI adapter layer
 
 ## Status
