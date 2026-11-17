@@ -1,8 +1,20 @@
 # TATE AI
 
-Conversational study tool: upload course materials, then talk through them with AI.
+**A study tutor that talks through your course materials with you and makes you do the thinking.**
+Live at **[tateai.app](https://tateai.app)** | React 18 | Vite | Supabase | Stripe | Claude API
 
-Built with React 18, Vite, Framer Motion, and Supabase.
+## Why it exists
+
+AI made it too easy to get homework done without learning anything. TateAI works the other way: you upload your slides, assignments and notes, then talk the material through with it. It gives hints, a similar example, or a check of your work, and it never solves your actual problem for you.
+
+## Highlights
+
+- **Upload anything:** PDFs, scans, photos, Word and PowerPoint, turned into searchable text
+- **Reply modes:** Hint, Similar example, Check my work, Essay feedback
+- **Study workspace:** courses, assignment planner with syllabus import, spaced-repetition flashcards, quizzes, study guides
+- **Voice:** dictation and spoken replies through the Web Speech API
+- **Billing:** Stripe checkout, customer portal and webhooks (test mode for now), with usage metered by actual AI cost
+- **Safe by default:** row-level security on every table, provider-neutral AI adapter layer
 
 ## Status
 
